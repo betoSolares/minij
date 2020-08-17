@@ -14,6 +14,7 @@
 *.PDF             diff=astextplain
 
 # Configs
+*.cfg             text
 .editorconfig     text
 .gitattributes    text
 .gitconfig        text
