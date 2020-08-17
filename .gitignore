@@ -4,7 +4,10 @@ __pycache__/
 *$py.class
 
 # Distribution / packaging
-build
+build/
+tmp/
+*.egg-info/
+*.spec
 
 # Environments
 .env
