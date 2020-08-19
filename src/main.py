@@ -10,3 +10,8 @@ if __name__ == "__main__":
         exit(1)
     else:
         input_file = sys.argv[1]
+
+    if sys.argv[1].lower().endswith('.txt'):
+        print("Correct file type")
+    else:
+        print("Incorrect file type")
