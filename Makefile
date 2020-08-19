@@ -5,8 +5,8 @@ VENV_NAME = venv
 PYTHON = ${VENV_NAME}/bin/python3
 PY_FILES= find . -type f -name '*.py' ! -path './venv/*' 2> /dev/null
 
-black: venv
-	black -v `${PY_FILES}`
+brunette: venv
+	brunette `${PY_FILES}` --config=setup.cfg
 	@echo ""
 
 build: venv
@@ -35,7 +35,7 @@ isort: venv
 	isort `${PY_FILES}`
 	@echo ""
 
-lint: black isort flake8
+lint: brunette isort flake8
 
 run: venv
 	${PYTHON} src/main.py
