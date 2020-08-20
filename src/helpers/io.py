@@ -13,6 +13,6 @@ class IO:
                     lines[i + 1] = l
 
             return lines
-        except:
+        except Exception:
             print("ERROR: could not load file")
             exit(1)
