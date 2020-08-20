@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 import sys
 
+from helpers import IO
+
 if __name__ == "__main__":
     if len(sys.argv) > 2:
         print("ERROR: only one file is allowed")
-        exit(1)
+        sys.exit(1)
     elif len(sys.argv) < 2:
         print("ERROR: no file provided")
-        exit(1)
-    else:
-        input_file = sys.argv[1]
+        sys.exit(1)
 
-    if sys.argv[1].lower().endswith('.txt'):
-        print("Correct file type")
-    else:
-        print("Incorrect file type")
+    input_file = sys.argv[1]
+    io = IO(input_file, input_file)
+    lines = io.read()
