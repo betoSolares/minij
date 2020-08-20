@@ -1,3 +1,6 @@
+import sys
+
+
 class IO:
     def __init__(self, input, output):
         self.input = input
@@ -15,4 +18,4 @@ class IO:
             return lines
         except Exception:
             print("ERROR: could not load file")
-            exit(1)
+            sys.exit(1)
