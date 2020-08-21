@@ -25,7 +25,7 @@ class Lexer:
             "{",
             "}",
         ]
-        self.__single_operator = [
+        self.__single_operator__ = [
             "+",
             "-",
             "*",
@@ -66,17 +66,26 @@ class Lexer:
         # Get all the words in the file
         word = ""
         symbol_found = False
+        string_found = False
 
         for line_number, text in lines.items():
             for char in text:
 
                 if char.isspace():
+                    if string_found:
+                        word += char
+                        continue
+
                     if len(word) > 0:
                         # Do something with the word
                         word = ""
                         symbol_found = False
 
                 elif char in self.__symbols__:
+                    if string_found:
+                        word += char
+                        continue
+
                     # Check if word and symbol are together
                     # Something like Main. or String[]
                     if len(word) > 0 and not symbol_found:
@@ -99,10 +108,25 @@ class Lexer:
                             word = char
 
                 else:
-
                     if symbol_found:
                         # Do something with the word
                         word = ""
+                        symbol_found = False
+
+                    # Check for start or end of a string
+                    if char == '"':
+                        if len(word) > 0 and not string_found:
+                            # Do something with the word
+                            word = ""
+
+                        if string_found:
+                            string_found = False
+                            word += char
+                            # Do something with the word
+                            word = ""
+                        else:
+                            string_found = True
+                            word = char
+                        continue
 
                     word += char
-                    symbol_found = False
