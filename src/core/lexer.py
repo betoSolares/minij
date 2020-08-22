@@ -67,11 +67,25 @@ class Lexer:
         word = ""
         symbol_found = False
         string_found = False
+        single_line_comment = False
+        single_line_number = 0
+        multiline_comment = False
 
         for line_number, text in lines.items():
             for char in text:
 
                 if char.isspace():
+                    # Ignore everything after the comment
+                    if single_line_comment:
+                        if single_line_number == line_number:
+                            continue
+                        else:
+                            single_line_comment = False
+
+                    if multiline_comment:
+                        word = ""
+                        continue
+
                     if string_found:
                         word += char
                         continue
@@ -82,6 +96,13 @@ class Lexer:
                         symbol_found = False
 
                 elif char in self.__symbols__:
+                    # Ignore everything after the comment
+                    if single_line_comment:
+                        if single_line_number == line_number:
+                            continue
+                        else:
+                            single_line_comment = False
+
                     if string_found:
                         word += char
                         continue
@@ -99,15 +120,47 @@ class Lexer:
                     else:
                         # Recognize double operator
                         if word + char in self.__double_operator__:
+                            if multiline_comment:
+                                continue
                             # Do something with the word
                             symbol_found = False
                             word = ""
+                        elif word + char == "//":
+                            if multiline_comment:
+                                continue
+                            symbol_found = False
+                            single_line_comment = True
+                            single_line_number = line_number
+                            word = ""
+                        elif word + char == "/*":
+                            if multiline_comment:
+                                continue
+                            symbol_found = False
+                            multiline_comment = True
+                            word = ""
+                        elif word + char == "*/":
+                            symbol_found = False
+                            multiline_comment = False
+                            word = ""
                         else:
-                            # Do something with the word
+                            if not multiline_comment:
+                                # Do something with the word
                             symbol_found = True
                             word = char
 
                 else:
+                    # Ignore everything after the comment
+                    if single_line_comment:
+                        if single_line_number == line_number:
+                            continue
+                        else:
+                            single_line_comment = False
+
+                    if multiline_comment:
+                        word = ""
+                        continue
+
+                    # Check if there is a symbol in the lexeme
                     if symbol_found:
                         # Do something with the word
                         word = ""
