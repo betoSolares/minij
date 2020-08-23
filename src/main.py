@@ -22,6 +22,3 @@ if __name__ == "__main__":
 
     io = IO(args["input_file"], args["output_file"])
     lines = io.read()
-    lex = Lexer()
-    lexemes = lex.get_lexemes(lines)
-    print(lexemes)
