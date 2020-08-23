@@ -26,6 +26,31 @@ class Lexer:
             "}",
         ]
 
+        self.__keywords__ = [
+                "void",
+                "int",
+                "double",
+                "boolean",
+                "string",
+                "class",
+                "const",
+                "interface",
+                "null",
+                "this",
+                "extends",
+                "implements",
+                "for",
+                "while",
+                "if",
+                "else",
+                "return",
+                "break",
+                "New",
+                "System",
+                "out",
+                "printin",
+        ]
+
     def get_lexemes(self, lines):
         # Check if the file is empty
         if len(lines) == 0:
@@ -40,10 +65,18 @@ class Lexer:
                 if char.isspace():
                     if len(word) > 0:
                         # Do something with the word
+                        print(word)
                         word = ""
                 elif char in self.__symbols__:
                     if len(word) > 0:
                         # Do something with the word
+                        print(word)
                         word = ""
+                        print(char)
+                    else:
+                        print(char+" is a symbol")
                 else:
                     word += char
+                    if word in self.__keywords__:
+                        print(word+" is a keyword")
+                        word = ""
