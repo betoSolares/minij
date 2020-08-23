@@ -127,8 +127,11 @@ class Lexer:
                             if multiline_comment:
                                 continue
 
+                            print(col, char)
                             lexemes.append(
-                                self.create_word(word + char, line_number, col)
+                                self.create_word(
+                                    word + char, line_number, col + 1
+                                )
                             )
                             symbol_found = False
                             word = ""
@@ -186,7 +189,9 @@ class Lexer:
                         if string_found:
                             string_found = False
                             lexemes.append(
-                                self.create_word(word + char, line_number, col)
+                                self.create_word(
+                                    word + char, line_number, col + 1
+                                )
                             )
                             word = ""
                         else:
@@ -199,6 +204,6 @@ class Lexer:
 
     def create_word(self, word, line, col):
         if len(word) > 1:
-            return Lexeme(word, line, col - len(word) + 1, col + 1)
+            return Lexeme(word, line, col - len(word) + 1, col)
         else:
-            return Lexeme(word, line, col + 1, None)
+            return Lexeme(word, line, col, None)
