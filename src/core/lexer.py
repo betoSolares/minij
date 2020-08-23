@@ -128,7 +128,7 @@ class Lexer:
                                 continue
 
                             lexemes.append(
-                                self.create_word(word, line_number, col)
+                                self.create_word(word + char, line_number, col)
                             )
                             symbol_found = False
                             word = ""
@@ -185,9 +185,8 @@ class Lexer:
 
                         if string_found:
                             string_found = False
-                            word += char
                             lexemes.append(
-                                self.create_word(word, line_number, col)
+                                self.create_word(word + char, line_number, col)
                             )
                             word = ""
                         else:
