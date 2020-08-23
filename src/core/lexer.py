@@ -27,7 +27,6 @@ class Lexer:
             "{",
             "}",
         ]
-
         self.__single_operator__ = [
             "+",
             "-",
@@ -68,7 +67,7 @@ class Lexer:
 
         # Get all the words in the file
         word = ""
-       symbol_found = False
+        symbol_found = False
         string_found = False
         single_line_comment = False
         single_line_number = 0
