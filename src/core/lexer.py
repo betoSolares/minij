@@ -58,6 +58,7 @@ class Lexer:
             "()",
             "{}",
         ]
+        self.errors = []
 
     def get_lexemes(self, lines):
         # Check if the file is empty
@@ -76,7 +77,9 @@ class Lexer:
 
         for line_number, text in lines.items():
             if string_found:
-                # Unfinished string error
+                self.errors.append(
+                    "Unfinished string on line " + str(line_number - 1)
+                )
                 word = ""
                 string_found = False
 
@@ -222,6 +225,13 @@ class Lexer:
                         continue
 
                     word += char
+
+        if string_found:
+            self.errors.append("End of file on string")
+
+        if multiline_comment:
+            self.errors.append("End of file on comment")
+
         return lexemes
 
     def create_word(self, word, line, col):
