@@ -75,6 +75,11 @@ class Lexer:
         lexemes = []
 
         for line_number, text in lines.items():
+            if string_found:
+                # Unfinished string error
+                word = ""
+                string_found = False
+
             for col in range(len(text)):
                 char = text[col]
 
