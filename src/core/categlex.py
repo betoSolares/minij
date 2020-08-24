@@ -1,34 +1,11 @@
 import sys
 import re
 
+from .token import Token
+
 class Categorizer:
-
     def __init__(self):
-
-        self.__symbols__ = [
-            "+",
-            "-",
-            "*",
-            "/",
-            "%",
-            "<",
-            "=",
-            ">",
-            "!",
-            "&",
-            "|",
-            ";",
-            ",",
-            ".",
-            "[",
-            "]",
-            "(",
-            ")",
-            "{",
-            "}",
-        ]
-
-        self.__keywords__ = [
+        self.__reservedwords__ = [
                 "void",
                 "int",
                 "double",
@@ -53,13 +30,11 @@ class Categorizer:
                 "printin",
         ]
 
-        deciPattern = r'[0-9]+'
         deciPattern = r"^[0-9]+$"
         hexaPattern = r"^0[x|X][0-9a-fA-F]+$"
         doublePattern = r"^[0-9]+.[0-9]*([e|E][+|-]?[0-9]+)?$"
         strPattern = r"^\"[^\"\n]*\"$"
 
     def categorize(self, lexemes_list):
-        for word in lexemes_list.items():
 
         return
