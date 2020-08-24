@@ -118,6 +118,15 @@ class Lexer:
                             word += char
                             continue
 
+                        if len(word) > 2 and char == "+" or char == "-":
+                            if (
+                                word[-1] == "E"
+                                or word[-1] == "e"
+                                and word[-2].isdigit()
+                            ):
+                                word += char
+                                continue
+
                         lexemes.append(self.create_word(word, line_number, col))
                         word = ""
 
@@ -131,7 +140,6 @@ class Lexer:
                             if multiline_comment:
                                 continue
 
-                            print(col, char)
                             lexemes.append(
                                 self.create_word(
                                     word + char, line_number, col + 1
