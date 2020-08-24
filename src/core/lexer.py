@@ -59,31 +59,6 @@ class Lexer:
             "{}",
         ]
 
-        self.__keywords__ = [
-                "void",
-                "int",
-                "double",
-                "boolean",
-                "string",
-                "class",
-                "const",
-                "interface",
-                "null",
-                "this",
-                "extends",
-                "implements",
-                "for",
-                "while",
-                "if",
-                "else",
-                "return",
-                "break",
-                "New",
-                "System",
-                "out",
-                "printin",
-        ]
-
     def get_lexemes(self, lines):
         # Check if the file is empty
         if len(lines) == 0:
@@ -125,19 +100,11 @@ class Lexer:
                         continue
 
                     if len(word) > 0:
-<<<<<<< HEAD
                         lexemes.append(self.create_word(word, line_number, col))
-||||||| parent of 2f779f7... Changes before pulling
-                        # Do something with the word
-=======
-                        # Do something with the word
-                        print(word)
->>>>>>> 2f779f7... Changes before pulling
                         word = ""
                         symbol_found = False
 
                 elif char in self.__symbols__:
-<<<<<<< HEAD
                     # Ignore everything after the comment
                     if single_line_comment:
                         if single_line_number == line_number:
@@ -166,16 +133,7 @@ class Lexer:
                                 continue
 
                         lexemes.append(self.create_word(word, line_number, col))
-||||||| parent of 2f779f7... Changes before pulling
-                    if len(word) > 0:
-                        # Do something with the word
-=======
-                    if len(word) > 0:
-                        # Do something with the word
-                        print(word)
->>>>>>> 2f779f7... Changes before pulling
                         word = ""
-<<<<<<< HEAD
 
                     # Verify if is the first or the second symbol
                     if not symbol_found:
@@ -219,12 +177,6 @@ class Lexer:
                             symbol_found = True
                             word = char
 
-||||||| parent of 2f779f7... Changes before pulling
-=======
-                        print(char)
-                    else:
-                        print(char+" is a symbol")
->>>>>>> 2f779f7... Changes before pulling
                 else:
                     # Ignore everything after the comment
                     if single_line_comment:
