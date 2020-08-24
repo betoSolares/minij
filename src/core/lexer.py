@@ -114,6 +114,10 @@ class Lexer:
                     # Check if word and symbol are together
                     # Something like Main. or String[]
                     if len(word) > 0 and not symbol_found:
+                        if word.isdigit() and char == ".":
+                            word += char
+                            continue
+
                         lexemes.append(self.create_word(word, line_number, col))
                         word = ""
 
@@ -174,6 +178,11 @@ class Lexer:
 
                     # Check if there is a symbol in the lexeme
                     if symbol_found:
+                        if word == "." and char.isdigit():
+                            word += char
+                            symbol_found = False
+                            continue
+
                         lexemes.append(self.create_word(word, line_number, col))
                         word = ""
                         symbol_found = False
