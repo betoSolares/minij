@@ -126,15 +126,15 @@ These instructions will get you a copy of the project up and running on your mac
 
 ### 2. Get the code
 
-sh
+sh\
 git clone https://github.com/betoSolares/minij.git
 
 
 ### 3.Compile
 
-sh
-cd minij
-pip install -r requirements/build.txt
+sh\
+cd minij\
+pip install -r requirements/build.txt\
 make build
 
 
