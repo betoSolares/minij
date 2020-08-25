@@ -138,7 +138,7 @@ pip install -r requirements/build.txt
 make build
 
 
-These should create a directory called 'build' with an executable file inside called 'minij'.
+These should create a directory called `build` with an executable file inside called `minij`.
 
 ## Usage
 
