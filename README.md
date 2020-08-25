@@ -116,6 +116,30 @@ int anotherExponential = 3.2e-2;
 
 ## Getting Started
 
+These instructions will get you a copy of the project up and running on your machine.
+
+### 1. Install dependencies
+
+* [Git](https://git-scm.com/downloads)
+* [Python >=3.4](https://www.python.org/downloads/)
+* [GNU Make](https://www.gnu.org/software/make/)
+
+### 2. Get the code
+
+sh
+git clone https://github.com/betoSolares/minij.git
+
+
+### 3.Compile
+
+sh
+cd minij
+pip install -r requirements/build.txt
+make build
+
+
+These should create a directory called 'build' with an executable file inside called 'minij'.
+
 ## Usage
 
 ### Examples
