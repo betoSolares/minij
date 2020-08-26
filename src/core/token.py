@@ -1,18 +1,19 @@
 class Token:
-    def __init__(self, lexeme, line, col_start, col_finish, category):
-        self.lexeme = lexeme
-        self.line = line
-        self.col_start = col_start
-        self.col_finish = col_finish
-        self.category = category
+    def __init__(self, word, line, start, finish, category, reason=None):
+        self.__word__ = word
+        self.__line__ = line
+        self.__start__ = start
+        self.__finish__ = finish
+        self.__category__ = category
+        self.__reason__ = reason
 
     @property
-    def lexeme(self):
-        return self.__lexeme__
+    def word(self):
+        return self.__word__
 
-    @lexeme.setter
-    def lexeme(self, lexeme):
-        self.__lexeme__ = lexeme
+    @word.setter
+    def word(self, word):
+        self.__word__ = word
 
     @property
     def line(self):
@@ -23,20 +24,20 @@ class Token:
         self.__line__ = line
 
     @property
-    def col_start(self):
-        return self.__col_start__
+    def start(self):
+        return self.__start__
 
-    @col_start.setter
-    def col_start(self, col_start):
-        self.__col_start__ = col_start
+    @start.setter
+    def start(self, start):
+        self.__start__ = start
 
     @property
-    def col_finish(self):
-        return self.__col_finish__
+    def finish(self):
+        return self.__finish__
 
-    @col_finish.setter
-    def col_finish(self, col_finish):
-        self.__col_finish__ = col_finish
+    @finish.setter
+    def finish(self, finish):
+        self.__finish__ = finish
 
     @property
     def category(self):
@@ -45,3 +46,11 @@ class Token:
     @category.setter
     def category(self, category):
         self.__category__ = category
+
+    @property
+    def reason(self):
+        return self.__reason__
+
+    @reason.setter
+    def reason(self, reason):
+        self.__reason__ = reason
