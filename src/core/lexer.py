@@ -60,176 +60,181 @@ class Lexer:
         ]
         self.errors = []
 
-    def get_lexemes(self, lines):
-        # Check if the file is empty
-        if len(lines) == 0:
-            print("There is nothing to do, the file is empty")
-            sys.exit(1)
-
-        # Get all the words in the file
+    def get_lexeme(self, lines):
         word = ""
-        symbol_found = False
-        string_found = False
-        single_line_comment = False
-        single_line_number = 0
-        multiline_comment = False
+        symbol = False
+        string = False
+        single = False
+        single_number = 0
+        multiline = False
         lexemes = []
 
-        for line_number, text in lines.items():
-            if string_found:
-                self.errors.append(
-                    "Unfinished string on line " + str(line_number - 1)
-                )
+        for line, text in lines.items():
+            # Verify that no string is open
+            if string:
+                self.errors.append("Unfinished string on line" + str(line - 1))
                 word = ""
-                string_found = False
+                string = False
 
             for col in range(len(text)):
                 char = text[col]
 
+                # Character is a whitespace
                 if char.isspace():
-                    # Ignore everything after the comment
-                    if single_line_comment:
-                        if single_line_number == line_number:
-                            continue
-                        else:
-                            single_line_comment = False
+                    # Ignore everything if it's a comment
+                    if single and single_number < line:
+                        single = False
+                    elif single:
+                        continue
 
-                    if multiline_comment:
+                    if multiline:
                         word = ""
                         continue
 
-                    if string_found:
+                    # Append the character if it's a string
+                    if string:
                         word += char
                         continue
 
+                    # A word was found
                     if len(word) > 0:
-                        lexemes.append(self.create_word(word, line_number, col))
+                        lexemes.append(self.create_word(word, line, col))
                         word = ""
-                        symbol_found = False
+                        symbol = False
 
+                # Character is a know symbol
                 elif char in self.__symbols__:
-                    # Ignore everything after the comment
-                    if single_line_comment:
-                        if single_line_number == line_number:
-                            continue
-                        else:
-                            single_line_comment = False
+                    # Ignore everything if it's a comment
+                    if single and single_number < line:
+                        single = False
+                    elif single:
+                        continue
 
-                    if string_found:
+                    # Append the character if it's a string
+                    if string:
                         word += char
                         continue
 
-                    # Check if word and symbol are together
-                    # Something like Main. or String[]
-                    if len(word) > 0 and not symbol_found:
+                    # If it's the first ocurrence of a symbol
+                    if len(word) > 0 and not symbol:
+                        # Check if it's the firts point of the number
                         if word.isdigit() and char == ".":
                             word += char
                             continue
 
+                        # Check for exponential part of a number
                         if len(word) > 2 and char == "+" or char == "-":
-                            if (
-                                word[-1] == "E"
-                                or word[-1] == "e"
-                                and word[-2].isdigit()
-                            ):
+                            if (word[-1] == "E" or word[-1] == "e" and word[-2].isdigit()):
                                 word += char
                                 continue
 
-                        lexemes.append(self.create_word(word, line_number, col))
+                        lexemes.append(self.create_word(word, line, col))
                         word = ""
 
-                    # Verify if is the first or the second symbol
-                    if not symbol_found:
-                        symbol_found = True
-                        word += char
-                    else:
+                    # If it's the second ocurrence of a symbol
+                    if symbol:
                         # Recognize double operator
                         if word + char in self.__double_operator__:
-                            if multiline_comment:
+                            if multiline:
                                 continue
 
-                            lexemes.append(
-                                self.create_word(
-                                    word + char, line_number, col + 1
-                                )
-                            )
-                            symbol_found = False
+                            lexemes.append(self.create_word(word + char, line, col + 1))
+                            symbol = False
                             word = ""
+
+                        # Single comment starts
                         elif word + char == "//":
-                            if multiline_comment:
+                            if multiline:
                                 continue
-                            symbol_found = False
-                            single_line_comment = True
-                            single_line_number = line_number
+
+                            symbol = False
+                            single = True
+                            single_number = line
                             word = ""
+
+                        # Multiline comment starts
                         elif word + char == "/*":
-                            if multiline_comment:
+                            if multiline:
                                 continue
-                            symbol_found = False
-                            multiline_comment = True
+
+                            symbol = False
+                            multiline = True
                             word = ""
+
+                        # Multiline comment ends
                         elif word + char == "*/":
-                            symbol_found = False
-                            multiline_comment = False
+                            # comment without match
+                            if not multiline:
+                                self.errors.append("Comment without match on line " + str(line))
+
+                            symbol = False
+                            multiline = False
                             word = ""
+
+                        # Two differentes symbols
                         else:
-                            if not multiline_comment:
-                                lexemes.append(
-                                    self.create_word(word, line_number, col)
-                                )
-                            symbol_found = True
+                            if not multiline:
+                                lexemes.append(self.create_word(word, line, col))
+
+                            symbol = True
                             word = char
 
-                else:
-                    # Ignore everything after the comment
-                    if single_line_comment:
-                        if single_line_number == line_number:
-                            continue
-                        else:
-                            single_line_comment = False
+                    # First ocurrence of a symbol
+                    else:
+                        symbol = True
+                        word += char
 
-                    if multiline_comment:
+                # Character is anything else
+                else:
+                    # Ignore everything if it's a comment
+                    if single and single_number < line:
+                        single = False
+                    elif single:
+                        continue
+
+                    if multiline:
                         word = ""
                         continue
 
-                    # Check if there is a symbol in the lexeme
-                    if symbol_found:
-                        if word == "." and char.isdigit():
-                            word += char
-                            symbol_found = False
-                            continue
+                    # If it's double number
+                    if symbol and word == "." and char.isdigit():
+                        word += char
+                        symbol = False
+                        continue
 
-                        lexemes.append(self.create_word(word, line_number, col))
+                    # Check if there is a symbol in the lexeme
+                    elif symbol:
+                        lexemes.append(self.create_word(word, line, col))
                         word = ""
-                        symbol_found = False
+                        symbol = False
 
                     # Check for start or end of a string
                     if char == '"':
-                        if len(word) > 0 and not string_found:
-                            lexemes.append(
-                                self.create_word(word, line_number, col)
-                            )
+                        # Word before string start
+                        if len(word) > 0 and not string:
+                            lexemes.append(self.create_word(word, line, col))
                             word = ""
 
-                        if string_found:
-                            string_found = False
-                            lexemes.append(
-                                self.create_word(
-                                    word + char, line_number, col + 1
-                                )
-                            )
+                        # String end
+                        if string:
+                            string = False
+                            lexemes.append(self.create_word(word + char, line, col + 1))
                             word = ""
+
+                        # String start
                         else:
-                            string_found = True
+                            string = True
                             word = char
+
                         continue
 
                     word += char
 
-        if string_found:
+        # EOF errors
+        if string:
             self.errors.append("End of file on string")
 
-        if multiline_comment:
+        if multiline:
             self.errors.append("End of file on comment")
 
         return lexemes

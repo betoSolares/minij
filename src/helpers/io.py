@@ -15,6 +15,11 @@ class IO:
                 for i, l in enumerate(file):
                     lines[i + 1] = l
 
+            # Check if the file is empty
+            if len(lines) == 0:
+                print("There is nothing to do, the file is empty")
+                sys.exit(0)
+
             return lines
         except Exception:
             print("ERROR: could not load file")
