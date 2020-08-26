@@ -1,7 +1,7 @@
+import re
 import sys
 
-from .lexeme import Lexeme
-
+from .token import Token
 
 class Lexer:
     def __init__(self):
@@ -58,7 +58,31 @@ class Lexer:
             "()",
             "{}",
         ]
-        self.errors = []
+        self.__reserved_words__ = [
+            "void",
+            "int",
+            "double",
+            "boolean",
+            "string",
+            "class",
+            "const",
+            "interface",
+            "null",
+            "this",
+            "extends",
+            "implements",
+            "for",
+            "while",
+            "if",
+            "else",
+            "return",
+            "break",
+            "New",
+            "System",
+            "out",
+            "println",
+        ]
+        self.__analysis__ = []
 
     def get_lexeme(self, lines):
         word = ""
@@ -67,12 +91,11 @@ class Lexer:
         single = False
         single_number = 0
         multiline = False
-        lexemes = []
 
         for line, text in lines.items():
             # Verify that no string is open
             if string:
-                self.errors.append("Unfinished string on line" + str(line - 1))
+                self.__add_error__(word, line - 1, col, "Unfinished string")
                 word = ""
                 string = False
 
@@ -98,7 +121,7 @@ class Lexer:
 
                     # A word was found
                     if len(word) > 0:
-                        lexemes.append(self.create_word(word, line, col))
+                        self.__categorize__(word, line, col)
                         word = ""
                         symbol = False
 
@@ -124,11 +147,11 @@ class Lexer:
 
                         # Check for exponential part of a number
                         if len(word) > 2 and char == "+" or char == "-":
-                            if (word[-1] == "E" or word[-1] == "e" and word[-2].isdigit()):
+                            if word[-1] == "E" or word[-1] == "e" and word[-2].isdigit():
                                 word += char
                                 continue
 
-                        lexemes.append(self.create_word(word, line, col))
+                        self.__categorize__(word, line, col)
                         word = ""
 
                     # If it's the second ocurrence of a symbol
@@ -138,7 +161,7 @@ class Lexer:
                             if multiline:
                                 continue
 
-                            lexemes.append(self.create_word(word + char, line, col + 1))
+                            self.__categorize__(word + char, line, col + 1)
                             symbol = False
                             word = ""
 
@@ -163,9 +186,8 @@ class Lexer:
 
                         # Multiline comment ends
                         elif word + char == "*/":
-                            # comment without match
                             if not multiline:
-                                self.errors.append("Comment without match on line " + str(line))
+                                self.__add_error__(word, line, col, "Comment without match")
 
                             symbol = False
                             multiline = False
@@ -174,7 +196,7 @@ class Lexer:
                         # Two differentes symbols
                         else:
                             if not multiline:
-                                lexemes.append(self.create_word(word, line, col))
+                                self.__categorize__(word, line, col)
 
                             symbol = True
                             word = char
@@ -204,7 +226,7 @@ class Lexer:
 
                     # Check if there is a symbol in the lexeme
                     elif symbol:
-                        lexemes.append(self.create_word(word, line, col))
+                        self.__categorize__(word, line, col)
                         word = ""
                         symbol = False
 
@@ -212,13 +234,13 @@ class Lexer:
                     if char == '"':
                         # Word before string start
                         if len(word) > 0 and not string:
-                            lexemes.append(self.create_word(word, line, col))
+                            self.__categorize__(word, line, col)
                             word = ""
 
                         # String end
                         if string:
                             string = False
-                            lexemes.append(self.create_word(word + char, line, col + 1))
+                            self.__categorize__(word + char, line, col + 1)
                             word = ""
 
                         # String start
@@ -232,15 +254,80 @@ class Lexer:
 
         # EOF errors
         if string:
-            self.errors.append("End of file on string")
+            self.__add_error__(None, len(lines), None, "EOF in string")
 
         if multiline:
-            self.errors.append("End of file on comment")
+            self.__add_error__(None, len(lines), None, "EOF in comment")
 
-        return lexemes
+    # Match the word with their category
+    def __categorize__(self, word, line, col):
+        # Recognize reserverd words
+        if word in self.__reserved_words__:
+            self.__add_token__(word, line, col, word.lower().capitalize())
 
-    def create_word(self, word, line, col):
-        if len(word) > 1:
-            return Lexeme(word, line, col - len(word) + 1, col)
+        # Recognize int base 10 number
+        elif re.search(r"^[0-9]+$", word):
+            self.__add_token__(word, line, col, "IntConstant_Decimal")
+
+        # Recognize int base 16 number
+        elif re.search(r"^0[x|X][0-9a-fA-F]+$", word):
+            self.__add_token__(word, line, col, "IntConstant_Hexadecimal")
+
+        # Recognize double number
+        elif re.search(r"^[0-9]\.[0-9]*([e|E][+|-]?[0-9]+)?$", word):
+            self.__add_token__(word, line, col, "DoubleConstant")
+
+        # Recognize string
+        elif re.search(r"^\".*\"$", word):
+            self.__add_token__(word, line, col, "StringConstant")
+
+        # Recognize boolean
+        elif word == "true" or word == "boolean":
+            self.__add_token__(word, line, col, "BooleanConstant")
+
+        # Recognize double operator
+        elif word in self.__double_operator__:
+            self.__add_token__(word, line, col, "DoubleOperator")
+
+        # Recognize single operator
+        elif word in self.__single_operator__:
+            self.__add_token__(word, line, col, "SingleOperator")
+
+        # Recognize identifier
+        elif re.search(r"^[a-zA-Z\$][0-9a-zA-Z\$]*$", word):
+            # The identifier can't be greater than 31 chars length
+            if len(word) > 31:
+                self.__add_error__(word, line, col, "Identifier to long")
+            else:
+                self.__add_token__(word, line, col, "Identifier")
+
+        # Recognize error
         else:
-            return Lexeme(word, line, col, None)
+            self.__handle_error__(word, line, col)
+
+    # Handle all the errors in the categorization
+    def __handle_error__(self, word, line, col):
+        if len(word) > 1:
+            self.__add_error__(word, line, col, "Not a recognized character")
+        elif re.search(r"^\.[0-9]+([e|E][+|-]?[0-9]+)?$", word):
+            self.__add_error__(word, line, col, "Not a valid double number")
+        else:
+            self.__add_error__(word, line, col, "Not a valid identifier")
+
+    # Add a new token to the list of analysis
+    def __add_token__(self, word, line, col, category):
+        if len(word) > 1:
+            token = Token(word, line, col - len(word) + 1, col, category)
+        else:
+            token = Token(word, line, col, None, category)
+
+        self.__analysis__.append(token)
+
+    # Add a new error to the list of analysis
+    def __add_error__(self, word, line, col, reason):
+        if len(word) > 1:
+            error = Token(word, line, col -len(word) + 1, col, "Error", reason)
+        else:
+            error = Token(word, line, col, None, "Error", reason)
+
+        self.__analysis__.append(error)
