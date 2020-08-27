@@ -8,7 +8,7 @@ def help_message():
     print("usage: minij [OPTIONS] [FILE]\n")
     print("OPTIONS:")
     print("  -h, --help      Show help for the command")
-    print("  -o, --output    Specify the oruput file")
+    print("  -o, --output    Specify the output file, this don't overwrite it")
     print("  -q, --quiet     Don't print anything")
 
 
@@ -39,15 +39,21 @@ def parse_flags(args_list):
 
         # Get specific output file
         elif opt in ("-o", "--output"):
+            if os.path.isdir(val):
+                print("ERROR: The output file is a directory")
+                sys.exit(1)
+
             args["output"] = val
 
     # Get the input file
     if len(vals) > 1:
         print("ERROR: only one file is allowed")
         sys.exit(1)
+
     elif len(vals) < 1:
         print("ERROR: no file provided")
         sys.exit(1)
+
     args["input"] = vals[0]
 
     # Set the output if not specified
