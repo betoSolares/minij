@@ -3,50 +3,63 @@ import os
 import sys
 
 
-class Flags:
-    def parse_flags(self, arg_list):
-        # Try to get all the values passed to the program
-        shorts = "ho:q"
-        longs = ["help", "output=", "quiet"]
+# Help message to show
+def help_message():
+    print("usage: minij [OPTIONS] [FILE]\n")
+    print("OPTIONS:")
+    print("  -h, --help      Show help for the command")
+    print("  -o, --output    Specify the oruput file")
+    print("  -q, --quiet     Don't print anything")
 
-        try:
-            opts, vals = getopt.getopt(arg_list, shorts, longs)
-        except getopt.error as e:
-            print("ERROR: %s" % e)
-            print("Try doing minij -h or minij --help to get more information")
-            sys.exit(1)
 
-        # Default values
-        args = {
-            "input_file": None,
-            "output_file": None,
-            "help": False,
-            "quiet": False,
-        }
+# Try to get all the values passed to the program
+def parse_flags(args_list):
+    shorts = "ho:"
+    longs = ["help", "output="]
 
-        # Get all the options of the program
-        for opt, val in opts:
-            if opt in ("-h", "--help"):
-                args["help"] = True
-            elif opt in ("-o", "--output"):
-                args["output_file"] = "%s.out" % val
-            elif opt in ("-q", "--quiet"):
-                args["quiet"] = True
+    try:
+        opts, vals = getopt.getopt(args_list, shorts, longs)
+    except getopt.error as e:
+        print("ERROR: %s" % e)
+        print("Try doing minij -h or minij --help to get more information")
+        sys.exit(1)
 
-        # Get the input file
-        if not args["help"]:
-            if len(vals) > 1:
-                print("ERROR: only one file is allowed")
-                sys.exit(1)
-            elif len(vals) < 1:
-                print("ERROR: no file provided")
-                sys.exit(1)
-            args["input_file"] = vals[0]
+    # Default values
+    args = {
+        "input": None,
+        "output": None,
+    }
 
-        # Verify that the output file is set
-        if not args["help"] and args["output_file"] is None:
-            args["output_file"] = (
-                os.path.splitext(args["input_file"])[0] + ".out"
-            )
+    for opt, val in opts:
+        # Print help message
+        if opt in ("-h", "--help"):
+            args["help"] = True
+            help_message()
+            sys.exit(0)
 
-        return args
+        # Get specific output file
+        elif opt in ("-o", "--output"):
+            args["output"] = val
+
+    # Get the input file
+    if len(vals) > 1:
+        print("ERROR: only one file is allowed")
+        sys.exit(1)
+    elif len(vals) < 1:
+        print("ERROR: no file provided")
+        sys.exit(1)
+    args["input"] = vals[0]
+
+    # Set the output if not specified
+    if args["output"] is None:
+        filename = os.path.splitext(os.path.basename(args["input"]))[0]
+        output = filename
+        count = 0
+
+        while os.path.isfile(output + ".out"):
+            count += 1
+            output = filename + str(count)
+
+        args["output"] = output + ".out"
+
+    return args
