@@ -1,7 +1,6 @@
 import re
-import sys
-
 from .token import Token
+
 
 class Lexer:
     def __init__(self):
@@ -83,8 +82,27 @@ class Lexer:
             "println",
         ]
         self.__analysis__ = []
+        self.__has_errors__ = False
 
-    def get_lexeme(self, lines):
+    # Try to tokenize the text, true if has no errors
+    def try_tokenize(self, lines):
+        self.__tokenization__(lines)
+        return not self.__has_errors__
+
+    # Get a list with all the errors
+    def get_errors(self):
+        return [x for x in self.__analysis__ if x.category == "Error"]
+
+    # Get a list with all the tokens
+    def get_tokens(self):
+        return [x for x in self.__analysis__ if x.category != "Error"]
+
+    # Get a list with all the errors and tokens
+    def get_all(self):
+        return self.__analysis__
+
+    # Get all the words of the file and categorize them
+    def __tokenization__(self, lines):
         word = ""
         symbol = False
         string = False
@@ -95,7 +113,7 @@ class Lexer:
         for line, text in lines.items():
             # Verify that no string is open
             if string:
-                self.__add_error__(word, line - 1, col, "Unfinished string")
+                self.__add_error__("", line - 1, col, "Unfinished string")
                 word = ""
                 string = False
 
@@ -146,8 +164,8 @@ class Lexer:
                             continue
 
                         # Check for exponential part of a number
-                        if len(word) > 2 and char == "+" or char == "-":
-                            if word[-1] == "E" or word[-1] == "e" and word[-2].isdigit():
+                        if len(word) >= 2 and (char == "+" or char == "-"):
+                            if (word[-1] == "E" or word[-1] == "e") and (word[-2].isdigit() or word[-2] == "."):
                                 word += char
                                 continue
 
@@ -187,7 +205,9 @@ class Lexer:
                         # Multiline comment ends
                         elif word + char == "*/":
                             if not multiline:
-                                self.__add_error__(word, line, col, "Comment without match")
+                                self.__add_error__(
+                                    word, line, col, "Comment without match"
+                                )
 
                             symbol = False
                             multiline = False
@@ -254,10 +274,10 @@ class Lexer:
 
         # EOF errors
         if string:
-            self.__add_error__(None, len(lines), None, "EOF in string")
+            self.__add_error__("", len(lines), None, "EOF in string")
 
         if multiline:
-            self.__add_error__(None, len(lines), None, "EOF in comment")
+            self.__add_error__("", len(lines), None, "EOF in comment")
 
     # Match the word with their category
     def __categorize__(self, word, line, col):
@@ -274,12 +294,15 @@ class Lexer:
             self.__add_token__(word, line, col, "IntConstant_Hexadecimal")
 
         # Recognize double number
-        elif re.search(r"^[0-9]\.[0-9]*([e|E][+|-]?[0-9]+)?$", word):
+        elif re.search(r"^[0-9]+\.[0-9]*([e|E][+|-]?[0-9]+)?$", word):
             self.__add_token__(word, line, col, "DoubleConstant")
 
         # Recognize string
         elif re.search(r"^\".*\"$", word):
-            self.__add_token__(word, line, col, "StringConstant")
+            if "\0" in word:
+                self.__add_error__(word, line, col, "String with NULL character")
+            else:
+                self.__add_token__(word, line, col, "StringConstant")
 
         # Recognize boolean
         elif word == "true" or word == "boolean":
@@ -298,6 +321,7 @@ class Lexer:
             # The identifier can't be greater than 31 chars length
             if len(word) > 31:
                 self.__add_error__(word, line, col, "Identifier to long")
+                self.__add_token__(word[:31], line, col, "Identifier")
             else:
                 self.__add_token__(word, line, col, "Identifier")
 
@@ -307,9 +331,9 @@ class Lexer:
 
     # Handle all the errors in the categorization
     def __handle_error__(self, word, line, col):
-        if len(word) > 1:
+        if len(word) == 1:
             self.__add_error__(word, line, col, "Not a recognized character")
-        elif re.search(r"^\.[0-9]+([e|E][+|-]?[0-9]+)?$", word):
+        elif re.search(r"^[0-9]*\.[0-9]*([e|E][+|-]?[0-9]*)?$", word):
             self.__add_error__(word, line, col, "Not a valid double number")
         else:
             self.__add_error__(word, line, col, "Not a valid identifier")
@@ -325,8 +349,10 @@ class Lexer:
 
     # Add a new error to the list of analysis
     def __add_error__(self, word, line, col, reason):
+        self.__has_errors__ = True
+
         if len(word) > 1:
-            error = Token(word, line, col -len(word) + 1, col, "Error", reason)
+            error = Token(word, line, col - len(word) + 1, col, "Error", reason)
         else:
             error = Token(word, line, col, None, "Error", reason)
 
