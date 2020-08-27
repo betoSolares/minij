@@ -1,5 +1,4 @@
-from .flags import Flags
-from .io import IO
-from .writter import Writter
+from .flags import parse_flags
+from .io import read, write
 
-__all__ = ["IO", "Flags", "Writter"]
+__all__ = ["parse_flags", "read", "write"]
