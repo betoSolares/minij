@@ -1,4 +1,4 @@
-.PHONY: build clean help lint run
+.PHONY: build clean help lint
 .DEFAULT_GOAL := help
 
 VENV_NAME = venv
@@ -28,7 +28,6 @@ help:
 	@echo "To build the project type make build"
 	@echo "To clean the project type make clean"
 	@echo "To lint the project type make lint"
-	@echo "To run the project type make run (only for dev)"
 	@echo "-------------------------------------------------"
 
 isort: venv
@@ -36,9 +35,6 @@ isort: venv
 	@echo ""
 
 lint: brunette isort flake8
-
-run: venv
-	${PYTHON} src/main.py
 
 venv: $(VENV_NAME)/bin/activate
 

@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 import sys
 
-from helpers import IO, Flags
+import helpers
+from analyzer import Lexer
 
 
-def help_message():
-    print("usage: minij [OPTIONS] [FILE]\n")
-    print("OPTIONS:")
-    print("  -h, --help      Show help for the command")
-    print("  -o, --output    Specify the oruput file")
-    print("  -q, --quiet     Don't print anything")
+def main(args):
+    files = helpers.parse_flags(args)
+    lines = helpers.read(files["input"])
+    lexer = Lexer()
+
+    # No errors on file
+    if lexer.try_tokenize(lines):
+        print("The file is fine, no error was found")
+
+    # Print errors on screen
+    else:
+        for err in lexer.get_errors():
+            print("*** ERROR on line", err.line, "***", err.reason, err.word)
+
+    # Write to the file
+    helpers.write(files["output"], lexer.get_all())
+    print("\nCheck the file", files["output"], "for more information")
+
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    flags = Flags()
-    args = flags.parse_flags(sys.argv[1:])
-
-    if args["help"]:
-        help_message()
-        sys.exit(0)
-
-    io = IO(args["input_file"], args["output_file"])
-    lines = io.read()
+    main(sys.argv[1:])
