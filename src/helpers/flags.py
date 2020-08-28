@@ -63,7 +63,7 @@ def parse_flags(args_list):
 
         while os.path.isfile(output + ".out"):
             count += 1
-            output = filename + str(count)
+            output = filename + "(" + str(count) + ")"
 
         args["output"] = output + ".out"
 
