@@ -160,7 +160,7 @@ and to a text file with the same name as the input file but with a `.out` extens
 The basic instruction to use the program would be the following:
 
 ```sh
-minij <input file>
+./minij <input file>
 ```
 
 If you need more information about the options you can pass use `minij -h` or `minij --help`
