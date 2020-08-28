@@ -297,7 +297,7 @@ class Lexer:
             self.__add_token__(word, line, col, "IntConstant_Hexadecimal")
 
         # Recognize double number
-        elif re.search(r"^[0-9]+\.[0-9]*([e|E][+|-]?[0-9]+)?$", word):
+        elif re.search(r"^[0-9]+\.?[0-9]*([e|E][+|-]?[0-9]+)?$", word):
             self.__add_token__(word, line, col, "DoubleConstant")
 
         # Recognize string
@@ -339,7 +339,7 @@ class Lexer:
             self.__add_error__(word, line, col, "Not a recognized char")
 
         # Double number error
-        elif re.search(r"^[0-9]*\.[0-9]*([e|E][+|-]?[0-9]*)?$", word):
+        elif re.search(r"^[0-9]*\.?[0-9]*([e|E][+|-]?[0-9]*)?$", word):
             self.__add_error__(word, line, col, "Not a valid double number")
 
         # Identifier error
