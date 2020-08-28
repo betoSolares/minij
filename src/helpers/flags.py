@@ -8,8 +8,7 @@ def help_message():
     print("usage: minij [OPTIONS] [FILE]\n")
     print("OPTIONS:")
     print("  -h, --help      Show help for the command")
-    print("  -o, --output    Specify the output file, this don't overwrite it")
-    print("  -q, --quiet     Don't print anything")
+    print("  -o, --output    Specify the output file")
 
 
 # Try to get all the values passed to the program
