@@ -21,6 +21,8 @@ practically the same. There are some considerations that you should keep in mind
 
 * The language is **case sensitive**, such that `if` is a reserved word but `IF` is an identifier.
 * All the comments must have an end.
+* All the strings must have an end.
+* No multiline strings are allowed.
 
 ### Reserved words
 
@@ -116,7 +118,9 @@ int anotherExponential = 3.2e-2;
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your machine.
+These instructions will get you a copy of the project up and running on your machine. If you don't
+want to compile it, you can download the
+[executable](https://github.com/betoSolares/minij/releases) for your OS.
 
 ### 1. Install dependencies
 
@@ -126,17 +130,17 @@ These instructions will get you a copy of the project up and running on your mac
 
 ### 2. Get the code
 
-sh\
+```sh
 git clone https://github.com/betoSolares/minij.git
-
+```
 
 ### 3.Compile
 
-sh\
-cd minij\
-pip install -r requirements/build.txt\
+```sh
+cd minij
+pip install -r requirements/build.txt
 make build
-
+```
 
 These should create a directory called `build` with an executable file inside called `minij`.
 
