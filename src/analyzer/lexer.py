@@ -1,4 +1,5 @@
 import re
+
 from .token import Token
 
 
@@ -113,7 +114,7 @@ class Lexer:
         for line, text in lines.items():
             # Verify that no string is open
             if string:
-                self.__add_error__("", line - 1, col, "Unfinished string")
+                self.__add_error__("", line - 1, len(word), "Unfinished string")
                 word = ""
                 string = False
 
@@ -165,7 +166,9 @@ class Lexer:
 
                         # Check for exponential part of a number
                         if len(word) >= 2 and (char == "+" or char == "-"):
-                            if (word[-1] == "E" or word[-1] == "e") and (word[-2].isdigit() or word[-2] == "."):
+                            if (word[-1] == "E" or word[-1] == "e") and (
+                                word[-2].isdigit() or word[-2] == "."
+                            ):
                                 word += char
                                 continue
 
@@ -300,7 +303,7 @@ class Lexer:
         # Recognize string
         elif re.search(r"^\".*\"$", word):
             if "\0" in word:
-                self.__add_error__(word, line, col, "String with NULL character")
+                self.__add_error__(word, line, col, "String with NULL char")
             else:
                 self.__add_token__(word, line, col, "StringConstant")
 
@@ -331,12 +334,42 @@ class Lexer:
 
     # Handle all the errors in the categorization
     def __handle_error__(self, word, line, col):
+        # Not a recognized character
         if len(word) == 1:
-            self.__add_error__(word, line, col, "Not a recognized character")
+            self.__add_error__(word, line, col, "Not a recognized char")
+
+        # Double number error
         elif re.search(r"^[0-9]*\.[0-9]*([e|E][+|-]?[0-9]*)?$", word):
             self.__add_error__(word, line, col, "Not a valid double number")
-        else:
+
+        # Identifier error
+        elif re.search(r"^[0-9][0-9a-zA-Z\$]+$", word):
             self.__add_error__(word, line, col, "Not a valid identifier")
+
+        # Iterate through the word to find know lexemes
+        else:
+            recognized = ""
+
+            for sub_col in range(len(word)):
+                char = word[sub_col]
+
+                # Know character
+                if char.isdigit() or char.isalpha() or char in self.__symbols__:
+                    recognized += char
+
+                # Unrecognized character
+                else:
+                    if len(recognized) > 0:
+                        n = col - len(word) + sub_col
+                        self.__categorize__(recognized, line, n)
+                        recognized = ""
+
+                    n = col - len(word) + sub_col + 1
+                    self.__add_error__(char, line, n, "Not a recognized char")
+
+            if len(recognized) > 0:
+                self.__categorize__(recognized, line, col)
+                recognized = ""
 
     # Add a new token to the list of analysis
     def __add_token__(self, word, line, col, category):
