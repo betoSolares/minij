@@ -146,7 +146,40 @@ These should create a directory called `build` with an executable file inside ca
 
 ## Usage
 
+The program is designed to be run through the command line, if you try to run it through a
+GUI you may encounter some errors.
+
+The compiler can receive any plain text file regardless of it's extension and can only work with
+one file at a time. After analyzing the file all, all the errors found are printed on the screen
+and to a text file with the same name as the input file but with a `.out` extension.
+
+The basic instruction to use the program would be the following:
+
+```sh
+minij <input file>
+```
+
+**NOTE** keep in mind that `minij` is the name of the executable file and keep in mind that we are
+assuming that the executable file is in the same directory that we are in, if this isn't your case
+please use the absolute path to the executable file.
+
 ### Examples
+
+```java
+/*
+  This is a simple hello world in java
+  that can be parsed by minij
+*/
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("This will be printed");
+    }
+}
+
+```
+
+More examples can be found [here](https://github.com/betoSolares/minij/tree/master/examples).
 
 ## Attribution
 

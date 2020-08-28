@@ -1,0 +1,13 @@
+/*
+  This is a simple hello world in java
+  that can be parsed by minij
+*/
+
+public class Main {
+	public static void main(String[] args) {
+		System.out.println("This will be printed");
+	}
+}
+
+// Check the .out file generated
+
