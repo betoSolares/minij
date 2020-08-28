@@ -308,7 +308,7 @@ class Lexer:
                 self.__add_token__(word, line, col, "StringConstant")
 
         # Recognize boolean
-        elif word == "true" or word == "boolean":
+        elif word == "true" or word == "false":
             self.__add_token__(word, line, col, "BooleanConstant")
 
         # Recognize double operator
