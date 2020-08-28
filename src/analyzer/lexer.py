@@ -209,7 +209,7 @@ class Lexer:
                         elif word + char == "*/":
                             if not multiline:
                                 self.__add_error__(
-                                    word, line, col, "Comment without match"
+                                    word + char, line, col, "Comment without match"
                                 )
 
                             symbol = False
@@ -354,7 +354,7 @@ class Lexer:
                 char = word[sub_col]
 
                 # Know character
-                if char.isdigit() or char.isalpha() or char in self.__symbols__:
+                if char.isdigit() or char.isalpha() or char in self.__symbols__ or char == "$":
                     recognized += char
 
                 # Unrecognized character
