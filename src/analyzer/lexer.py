@@ -81,6 +81,7 @@ class Lexer:
             "System",
             "out",
             "println",
+            "Print",
         ]
         self.__analysis__ = []
         self.__has_errors__ = False
