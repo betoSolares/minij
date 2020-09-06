@@ -289,7 +289,7 @@ class Lexer:
     def __categorize__(self, word, line, col):
         # Recognize reserverd words
         if word in self.__reserved_words__:
-            self.__add_token__(word, line, col, word.lower().capitalize())
+            self.__add_token__(word, line, col, word)
 
         # Recognize int base 10 number
         elif re.search(r"^[0-9]+$", word):
