@@ -1,7 +1,7 @@
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self):
         self.__tokens__ = None
-        self.__analysis__ = []
+        self.__errors__ = []
         self.__has_errors__ = False
 
     # Try to parse the tokens list
@@ -23,7 +23,7 @@ class Parser:
         else:
             expect = expected
 
-            self.__analysis__.append(
+            self.__errors__.append(
                 "*** Syntax Error *** on line "
                 + str(token.line)
                 + " "
@@ -36,7 +36,10 @@ class Parser:
     def __multiple_expected__(self, expected):
         new_expected = ""
 
-        for expect in expected:
-            new_expected += expect + "or "
+        for i in range(len(expected)):
+            new_expected += expected[i]
+
+            if i + 1 < len(expected):
+                new_expected += " or "
 
         return new_expected
