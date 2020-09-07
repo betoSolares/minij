@@ -10,6 +10,10 @@ class Parser:
         # Parse method
         return not self.__has_errors__
 
+    # Get all the errors found
+    def get_errors(self):
+        return self.__errors__
+
     # Get the next token in the list
     def __get_next_token__(self):
         return next(self.__tokens__, None)
