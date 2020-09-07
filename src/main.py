@@ -2,26 +2,32 @@
 import sys
 
 import helpers
-from analyzer import Lexer
+from analyzer import Lexer, Parser
 
 
 def main(args):
     files = helpers.parse_flags(args)
     lines = helpers.read(files["input"])
     lexer = Lexer()
+    parser = Parser()
 
-    # No errors on file
+    # No lexical errors on file
     if lexer.try_tokenize(lines):
-        print("The file is fine, no error was found")
+        # No syntactical errors
+        if parser.try_parse(lexer.get_tokens()):
+            print("The file is fine, no error was found")
 
-    # Print errors on screen
+        # Print syntactical errors on screen
+        else:
+            print(*lexer.get_errors(), sep="\n")
+
+    # Print lexical errors on screen and write to the file
     else:
         for err in lexer.get_errors():
             print("*** ERROR on line", err.line, "***", err.reason, err.word)
 
-    # Write to the file
-    helpers.write(files["output"], lexer.get_all())
-    print("\nCheck the file", files["output"], "for more information")
+        helpers.write(files["output"], lexer.get_all())
+        print("\nCheck the file", files["output"], "for more information")
 
     sys.exit(0)
 
