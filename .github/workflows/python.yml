@@ -2,10 +2,10 @@ name: Python CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, recursive-parser ]
 
   pull_request:
-    branches: [ master ]
+    branches: [ master, recursive-parser ]
 
 jobs:
   build:
