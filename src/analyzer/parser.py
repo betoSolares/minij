@@ -6,7 +6,8 @@ class Parser:
 
     # Try to parse the tokens list, true if no errors
     def try_parse(self, tokens):
-        self.__tokens__ = iter(tokens)
+        # self.__tokens__ = iter(tokens)
+        self.__tokens__ = tokens
 
         # Parse method
         return len(self.__errors__) == 0
@@ -28,114 +29,275 @@ class Parser:
         )
 
     # Get the next token in the list
-    def __get_next_token__(self):
-        return next(self.__tokens__, None)
+    # def __get_next_token__(self):
+    #     return next(self.__tokens__, None)
 
     # Concatenate all the expected in a single string
     def __multiple_expected__(self, expected):
         return " or ".join(expected)
 
-    def iter(tokens):
+    def Program():
         return Decl() and _Program()
 
-    def Decl():
-        return VarDecl() or Func
-
     def _Program():
-        return
+        if Program():
+            return True
+        else:
+            return True
+
+    def Decl():
+        if VarDecl():
+            return True
+        elif FuncDeclare():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def VarDecl():
-        return
+        return Variable() and term(';')
 
     def Variable():
-        return
+        return Type() and term_constant('T_Identifier')
 
     def Type():
-        if
+        if term('int') and _Type():
+            return True
+        elif term('double') and _Type():
+            return True
+        elif term('boolean') and _Type():
+            return True
+        elif term('string') and _Type():
+            return True
+        elif term_constant('T_Identifier') and _Type():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _Type():
-        return
+        if term('[]') and _Type():
+            return True
+        else:
+            return True
 
     def FuncDeclare():
-        return
+        if Type() and term_constant('T_Identifier') and term('(') and Formals() and term(')') and _Stmt():
+            return True
+        elif term('void') and and term_constant('T_Identifier') and term('(') and Formals() and term(')') and _Stmt():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _Stmt():
-        return
+        if Stmt() and _Stmt():
+            return True
+        else:
+            return True
 
     def Formals():
-        return
+        if _Variable and term(','):
+            return True
+        else:
+            return True
 
     def _Variable():
-        return
+        if Variable():
+            return True
+        elif Variable() and _Variable():
+            return True
 
     def Stmt():
-        return
+        if IfStmt():
+            return True
+        elif ForStmt():
+            return True
+        elif Expr() and term(';'):
+            return True
+        else:
+            #Backtracking
+            return False
 
     def IfStmt():
-        return
+        return term('if') and term('(') and Expr() and term(')') and Stmt() and ElseStmt()
 
     def ElseStmt():
-        return
+        if term('else') and Stmt():
+            return True
+        else:
+            #epsilon
+            return True
 
     def ForStmt():
-        return
+        return term('for') and term('(') and OptExpr() and term(';') and Expr() and term(';') and OptExpr() and term(')') and Stmt()
 
     def OptExpr():
-        return
+        if Expr():
+            return True
+        else:
+            return True
 
     def MultExpr():
-        return
+        if Expr():
+            return True
+        elif Expr() and MultExpr():
+            return True
 
     def Expr():
-        return
+        if LValue() and term('=') and _Expr():
+            return True
+        elif _Expr():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _Expr():
-        return
+        if T() and _E():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _E():
-        return
+        if term('||') and T() and _E():
+            return True
+        else:
+            #epsilon
+            return True
 
     def T():
-        return
+        if F() and _T():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _T():
-        return
+        if term('&&') and F() and _T():
+            return True
+        else:
+            #epsilon
+            return True
 
     def F():
-        return
+        if G() and _F():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _F():
-        return
+        if term('==') and G() and _F():
+            return True
+        elif term('!=') and G() and _F():
+            return True
+        else:
+            #epsilon
+            return True
 
     def G():
-        return
+        if H() and _G():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _G():
-        return
+        if term('<') and H() and _G():
+            return True
+        elif term('>') and H() and _G():
+            return True
+        elif term('<=') and H() and _G():
+            return True
+        elif term('>=') and H() and _G():
+            return True
+        else:
+            #epsilon
+            return True
 
     def H():
-        return
+        if J() and _H():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _H():
-        return
+        if term('+') and J() and _H():
+            return True
+        elif term('-') and J() and _H():
+            return True
+        else:
+            #Backtracking
+            #epsilon
+            return True
 
     def J():
-        return
+        if K() and _J():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def _J():
-        return
+        if term('*') and K() and _J():
+            return True
+        elif term('/') and K() and _J():
+            return True
+        elif term('%') and K() and _J():
+            return True
+        else:
+            #epsilon
+            return True
 
     def K():
-        return
+        if term('-') and Expr():
+            return True
+        elif term('!') and Expr():
+            return True
+        elif L():
+            return True
+        else:
+            #Backtracking
+            return False
 
     def L():
-        return
+        if term('(') and Expr() and term(')'):
+            return True
+        elif term('this'):
+            return True
+        elif term('New') and term('(') and term_constant('T_Identifier', 'category') and term(')'):
+            return True
+        elif Constant():
+            return True
+        elif LValue():
+            return True
+        else:
+            #Backtracking and error
+            return False
 
     def LValue():
-        return
+        if term('T_Identifier', 'category'):
+            return True
+        elif Expr() and term('.') and term_constant('T_Identifier', 'category'):
+            return True
+        elif Expr() and term('[') and Expr() and term(']'):
+            return True
+        else:
+            #Backtracking and error
+            return False
 
     def Constant():
-        return
+        if term_constant('T_IntConstant_Hexadecimal') or term_constant('T_IntConstant_Decimal') or term_constant('T_StringConstant') or term_constant('T_BooleanConstant') or term_constant('T_DoubleConstant'):
+            return True
+        else:
+            #epsilon
+            return True
 
     def term(expected):
-        return __get_next_token__ == expected
+        return self.__tokens__[cursor].word == expected
+
+    def term_constant(expected):
+        return self.__tokens__[cursor].category == expected
