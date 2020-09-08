@@ -2,8 +2,8 @@ class Parser:
     def __init__(self):
         self.__tokens__ = None
         self.__errors__ = []
-        cursor = 0
-        saved_cursor = cursor
+        self.cursor = 0
+        self.saved = 0
 
     # Try to parse the tokens list, true if no errors
     def try_parse(self, tokens):
@@ -62,45 +62,49 @@ class Parser:
         return self.Type and self.term_cat("T_Identifier")
 
     def Type(self):
-        if self.term("int") and self._Type:
-            return True
-        elif self.term("double") and self._Type:
-            return True
-        elif self.term("boolean") and self._Type:
-            return True
-        elif self.term("string") and self._Type:
-            return True
-        elif self.term_cat("T_Identifier") and self._Type:
-            return True
+        if self.lookahead_term == "int":
+            self.save_cursor
+            return self.term("int") and self._Type
+        elif self.lookahead_term == "double":
+            self.backtrack
+            self.save_cursor
+            return self.term("double") and self._Type
+        elif self.lookahead_term == "boolean":
+            return self.term("boolean") and self._Type
+        elif self.lookahead_term == "string":
+            return self.term("string") and self._Type
+        elif self.lookahead_cat == "T_Identifier":
+            return self.term_cat("T_Identifier") and self._Type
         else:
             # Backtracking
             return False
 
     def _Type(self):
-        if self.term("[]") and self._Type:
-            return True
+        if self.lookahead_term == "[]":
+            return self.term("[]") and self._Type
         else:
+            # epsilon?
             return True
 
     def FuncDeclare(self):
-        if (
-            self.Type
-            and self.term_cat("T_Identifier")
-            and self.term("(")
-            and self.Formals
-            and self.term(")")
-            and self._Stmt
-        ):
-            return True
-        elif (
-            self.term("void")
-            and self.term_cat("T_Identifier")
-            and self.term("(")
-            and self.Formals
-            and self.term(")")
-            and self._Stmt
-        ):
-            return True
+        if self.lookahead_term == "void":
+            return (
+                self.term("void")
+                and self.term_cat("T_Identifier")
+                and self.term("(")
+                and self.Formals
+                and self.term(")")
+                and self._Stmt
+            )
+        elif self.lookahead_cat == "T_Identifier":
+            return (
+                self.Type
+                and self.term_cat("T_Identifier")
+                and self.term("(")
+                and self.Formals
+                and self.term(")")
+                and self._Stmt
+            )
         else:
             # Backtracking
             return False
@@ -135,34 +139,39 @@ class Parser:
             return False
 
     def IfStmt(self):
-        return (
-            self.term("if")
-            and self.term("(")
-            and self.Expr
-            and self.term(")")
-            and self.Stmt
-            and self.ElseStmt
-        )
+        if self.lookahead_term == "if":
+            return (
+                self.term("if")
+                and self.term("(")
+                and self.Expr
+                and self.term(")")
+                and self.Stmt
+                and self.ElseStmt
+            )
+        else:
+            # Error?
+            return False
 
     def ElseStmt(self):
-        if self.term("else") and self.Stmt:
-            return True
+        if self.lookahead_term == "else":
+            return self.term("else") and self.Stmt
         else:
             # epsilon
             return True
 
     def ForStmt(self):
-        return (
-            self.term("for")
-            and self.term("(")
-            and self.OptExpr
-            and self.term(";")
-            and self.Expr
-            and self.term(";")
-            and self.OptExpr
-            and self.term(")")
-            and self.Stmt
-        )
+        if self.lookahead_term == "for":
+            return (
+                self.term("for")
+                and self.term("(")
+                and self.OptExpr
+                and self.term(";")
+                and self.Expr
+                and self.term(";")
+                and self.OptExpr
+                and self.term(")")
+                and self.Stmt
+            )
 
     def OptExpr(self):
         if self.Expr:
@@ -193,8 +202,8 @@ class Parser:
             return False
 
     def _E(self):
-        if self.term("||") and self.T and self._E:
-            return True
+        if self.lookahead_term == "||":
+            return self.term("||") and self.T and self._E
         else:
             # epsilon
             return True
@@ -221,10 +230,10 @@ class Parser:
             return False
 
     def _F(self):
-        if self.term("==") and self.G and self._F:
-            return True
-        elif self.term("!=") and self.G and self._F:
-            return True
+        if self.lookahead_term == "==":
+            return self.term("==") and self.G and self._F
+        elif self.lookahead_term == "!=":
+            return self.term("!=") and self.G and self._F
         else:
             # epsilon
             return True
@@ -237,14 +246,14 @@ class Parser:
             return False
 
     def _G(self):
-        if self.term("<") and self.H and self._G:
-            return True
-        elif self.term(">") and self.H and self._G:
-            return True
-        elif self.term("<=") and self.H and self._G:
-            return True
-        elif self.term(">=") and self.H and self._G:
-            return True
+        if self.lookahead_term == "<":
+            return self.term("<") and self.H and self._G
+        if self.lookahead_term == ">":
+            return self.term(">") and self.H and self._G
+        if self.lookahead_term == "<=":
+            return self.term("<=") and self.H and self._G
+        if self.lookahead_term == ">=":
+            return self.term(">=") and self.H and self._G
         else:
             # epsilon
             return True
@@ -257,10 +266,10 @@ class Parser:
             return False
 
     def _H(self):
-        if self.term("+") and self.J and self._H:
-            return True
-        elif self.term("-") and self.J and self._H:
-            return True
+        if self.lookahead_term == "+":
+            return self.term("+") and self.J and self._H
+        elif self.lookahead_term == "-":
+            return self.term("-") and self.J and self._H
         else:
             # Backtracking
             # epsilon
@@ -274,21 +283,21 @@ class Parser:
             return False
 
     def _J(self):
-        if self.term("*") and self.K and self._J:
-            return True
-        elif self.term("/") and self.K and self._J:
-            return True
-        elif self.term("%") and self.K and self._J:
-            return True
+        if self.lookahead_term == "*":
+            return self.term("*") and self.K and self._J
+        elif self.lookahead_term == "/":
+            return self.term("/") and self.K and self._J
+        elif self.lookahead_term == "%":
+            return self.term("%") and self.K and self._J
         else:
             # epsilon
             return True
 
     def K(self):
-        if self.term("-") and self.Expr:
-            return True
-        elif self.term("!") and self.Expr:
-            return True
+        if self.lookahead_term == "-":
+            return self.term("-") and self.Expr
+        elif self.lookahead_term == "!":
+            return self.term("!") and self.Expr
         elif self.L:
             return True
         else:
@@ -296,17 +305,17 @@ class Parser:
             return False
 
     def L(self):
-        if self.term("(") and self.Expr and self.term(")"):
-            return True
-        elif self.term("this"):
-            return True
-        elif (
-            self.term("New")
-            and self.term("(")
-            and self.term_cat("T_Identifier", "category")
-            and self.term(")")
-        ):
-            return True
+        if self.lookahead_term == "(":
+            return self.term("(") and self.Expr and self.term(")")
+        elif self.lookahead_term == "this":
+            return self.term("this")
+        elif self.lookahead_term == "New":
+            return (
+                self.term("New")
+                and self.term("(")
+                and self.term_cat("T_Identifier")
+                and self.term(")")
+            )
         elif self.Constant:
             return True
         elif self.LValue:
@@ -316,8 +325,8 @@ class Parser:
             return False
 
     def LValue(self):
-        if self.term_cat("T_Identifier"):
-            return True
+        if self.lookahead_cat == "T_Identifier":
+            return self.term_cat("T_Identifier")
         elif self.Expr and self.term(".") and self.term_cat("T_Identifier"):
             return True
         elif self.Expr and self.term("[") and self.Expr and self.term("]"):
@@ -327,40 +336,42 @@ class Parser:
             return False
 
     def Constant(self):
-        if (
-            self.term_cat("T_IntConstant_Hexadecimal")
-            or self.term_cat("T_IntConstant_Decimal")
-            or self.term_cat("T_StringConstant")
-            or self.term_cat("T_BooleanConstant")
-            or self.term_cat("T_DoubleConstant")
-        ):
-            return True
+        if self.lookahead_cat == "T_IntConstant_Hexadecimal":
+            return self.term_cat("T_IntConstant_Hexadecimal")
+        elif self.lookahead_cat == "T_IntConstant_Decimal":
+            return self.term_cat("T_IntConstant_Decimal")
+        elif self.lookahead_cat == "T_StringConstant":
+            return self.term_cat("T_StringConstant")
+        elif self.lookahead_cat == "T_BooleanConstant":
+            return self.term_cat("T_BooleanConstant")
+        elif self.lookahead_cat == "T_DoubleConstant":
+            return self.term_cat("T_DoubleConstant")
         else:
             # epsilon
             return True
 
     def term(self, expected):
-        if self.__tokens__[cursor].word == expected:
-            cursor += cursor
+        if self.__tokens__[self.cursor].word == expected:
+            self.cursor += self.cursor
             return True
         else:
             return False
 
     def term_cat(self, expected):
-        if self.__tokens__[cursor].category == expected:
-            cursor += cursor
+        if self.__tokens__[self.cursor].category == expected:
+            self.cursor += self.cursor
             return True
         else:
             return False
 
     def save_cursor(self):
-        saved_cursor = cursor
+        self.saved = self.cursor
 
     def backtrack(self):
-        cursor = saved_cursor
+        self.cursor = self.saved
 
     def lookahead_term(self):
-        return self.__tokens__[cursor].word
+        return self.__tokens__[self.cursor].word
 
     def lookahead_cat(self):
-        return self.__tokens__[cursor].category
+        return self.__tokens__[self.cursor].category
