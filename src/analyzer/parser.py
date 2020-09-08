@@ -20,9 +20,11 @@ class Parser:
     # Add a new error to the list
     def __add_error__(self, token, expect):
         exp = self.__multiple_expected__(expect) if len(expect) > 0 else expect
+        cols = self.__error_columns__(token)
         self.__errors__.append(
             "*** Syntax Error *** on line "
             + str(token.line)
+            + cols
             + " "
             + exp
             + " was expected and got "
@@ -36,6 +38,7 @@ class Parser:
     # Concatenate all the expected in a single string
     def __multiple_expected__(self, expected):
         return " or ".join(expected)
+
 
     def Program(self):
         return self.Decl and self._Program
@@ -375,3 +378,11 @@ class Parser:
 
     def lookahead_cat(self):
         return self.__tokens__[self.cursor].category
+
+    def __error_columns__(self, token):
+        if token.finish is None:
+            cols = " column " + str(token.start)
+        else:
+            cols = " columns " + str(token.start) + " to " + str(token.finish)
+
+        return cols
