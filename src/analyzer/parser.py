@@ -3,6 +3,7 @@ class Parser:
         self.__tokens__ = None
         self.__errors__ = []
         cursor = 0
+        saved_cursor = cursor
 
     # Try to parse the tokens list, true if no errors
     def try_parse(self, tokens):
@@ -58,7 +59,7 @@ class Parser:
         return Variable() and term(';')
 
     def Variable():
-        return Type() and term_constant('T_Identifier')
+        return Type() and term_cat('T_Identifier')
 
     def Type():
         if term('int') and _Type():
@@ -69,7 +70,7 @@ class Parser:
             return True
         elif term('string') and _Type():
             return True
-        elif term_constant('T_Identifier') and _Type():
+        elif term_cat('T_Identifier') and _Type():
             return True
         else:
             #Backtracking
@@ -82,9 +83,9 @@ class Parser:
             return True
 
     def FuncDeclare():
-        if Type() and term_constant('T_Identifier') and term('(') and Formals() and term(')') and _Stmt():
+        if Type() and term_cat('T_Identifier') and term('(') and Formals() and term(')') and _Stmt():
             return True
-        elif term('void') and and term_constant('T_Identifier') and term('(') and Formals() and term(')') and _Stmt():
+        elif term('void') and and term_cat('T_Identifier') and term('(') and Formals() and term(')') and _Stmt():
             return True
         else:
             #Backtracking
@@ -268,7 +269,7 @@ class Parser:
             return True
         elif term('this'):
             return True
-        elif term('New') and term('(') and term_constant('T_Identifier', 'category') and term(')'):
+        elif term('New') and term('(') and term_cat('T_Identifier', 'category') and term(')'):
             return True
         elif Constant():
             return True
@@ -279,9 +280,9 @@ class Parser:
             return False
 
     def LValue():
-        if term('T_Identifier', 'category'):
+        if term_cat('T_Identifier'):
             return True
-        elif Expr() and term('.') and term_constant('T_Identifier', 'category'):
+        elif Expr() and term('.') and term_cat('T_Identifier'):
             return True
         elif Expr() and term('[') and Expr() and term(']'):
             return True
@@ -290,14 +291,35 @@ class Parser:
             return False
 
     def Constant():
-        if term_constant('T_IntConstant_Hexadecimal') or term_constant('T_IntConstant_Decimal') or term_constant('T_StringConstant') or term_constant('T_BooleanConstant') or term_constant('T_DoubleConstant'):
+        if term_cat('T_IntConstant_Hexadecimal') or term_cat('T_IntConstant_Decimal') or term_cat('T_StringConstant') or term_cat('T_BooleanConstant') or term_cat('T_DoubleConstant'):
             return True
         else:
             #epsilon
             return True
 
     def term(expected):
-        return self.__tokens__[cursor].word == expected
+        if self.__tokens__[cursor].word == expected:
+            cursor += cursor
+            return True
+        else:
+            return False
 
-    def term_constant(expected):
-        return self.__tokens__[cursor].category == expected
+    def term_cat(expected):
+        if self.__tokens__[cursor].category == expected:
+            cursor += cursor
+            return True
+        else:
+            return False
+
+    def save_cursor():
+        saved_cursor = cursor
+
+    def backtrack():
+        cursor = saved_cursor
+
+    def lookahead_term():
+        return self.__tokens__[cursor].word
+
+    def lookahead_cat():
+        return self.__tokens__[cursor].category
+
