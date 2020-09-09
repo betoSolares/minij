@@ -9,9 +9,8 @@ class Parser:
     def try_parse(self, tokens):
         # self.__tokens__ = iter(tokens)
         self.__tokens__ = tokens
-
-        # Parse method
-        return len(self.__errors__) == 0
+        breakpoint()
+        return self.Program() and len(self.__errors__) == 0
 
     # Get all the errors
     def get_errors(self):
@@ -39,330 +38,339 @@ class Parser:
     def __multiple_expected__(self, expected):
         return " or ".join(expected)
 
-
+    # Beginning of parsing algorithm
     def Program(self):
-        return self.Decl and self._Program
+        return self.Decl() and self._Program()
 
     def _Program(self):
-        if self.Program:
+        if self.Program():
             return True
         else:
             return True
 
     def Decl(self):
-        if self.VarDecl:
+        if self.VarDecl():
             return True
-        elif self.FuncDeclare:
+        elif self.FuncDeclare():
             return True
         else:
             # Backtracking
             return False
 
     def VarDecl(self):
-        return self.Variable and self.term(";")
+        return self.Variable() and self.term(";")
 
     def Variable(self):
-        return self.Type and self.term_cat("T_Identifier")
+        return self.Type() and self.term_cat("Identifier")
 
     def Type(self):
-        if self.lookahead_term == "int":
+        lookahead = self.lookahead_term()
+        if lookahead == "int":
             self.save_cursor
-            return self.term("int") and self._Type
-        elif self.lookahead_term == "double":
+            return self.term("int") and self._Type()
+        elif lookahead == "double":
             self.backtrack
             self.save_cursor
-            return self.term("double") and self._Type
-        elif self.lookahead_term == "boolean":
-            return self.term("boolean") and self._Type
-        elif self.lookahead_term == "string":
-            return self.term("string") and self._Type
-        elif self.lookahead_cat == "T_Identifier":
-            return self.term_cat("T_Identifier") and self._Type
+            return self.term("double") and self._Type()
+        elif lookahead == "boolean":
+            return self.term("boolean") and self._Type()
+        elif lookahead == "string":
+            return self.term("string") and self._Type()
+        elif self.lookahead_cat() == "Identifier":
+            return self.term_cat("Identifier") and self._Type()
         else:
             # Backtracking
             return False
 
     def _Type(self):
-        if self.lookahead_term == "[]":
-            return self.term("[]") and self._Type
+        if self.lookahead_term() == "[]":
+            return self.term("[]") and self._Type()
         else:
             # epsilon?
             return True
 
     def FuncDeclare(self):
-        if self.lookahead_term == "void":
+        if self.lookahead_term() == "void":
             return (
                 self.term("void")
-                and self.term_cat("T_Identifier")
+                and self.term_cat("Identifier")
                 and self.term("(")
-                and self.Formals
+                and self.Formals()
                 and self.term(")")
-                and self._Stmt
+                and self._Stmt()
             )
-        elif self.lookahead_cat == "T_Identifier":
+        elif self.lookahead_cat() == "Identifier":
             return (
-                self.Type
-                and self.term_cat("T_Identifier")
+                self.Type()
+                and self.term_cat("Identifier")
                 and self.term("(")
-                and self.Formals
+                and self.Formals()
                 and self.term(")")
-                and self._Stmt
+                and self._Stmt()
             )
         else:
             # Backtracking
             return False
 
     def _Stmt(self):
-        if self.Stmt and self._Stmt:
+        if self.Stmt() and self._Stmt():
             return True
         else:
+            # epsilon
             return True
 
     def Formals(self):
-        if self._Variable and self.term(","):
+        if self._Variable() and self.term(","):
             return True
         else:
             return True
 
     def _Variable(self):
-        if self.Variable:
+        if self.Variable():
             return True
-        elif self.Variable and self._Variable:
+        elif self.Variable() and self._Variable():
             return True
 
     def Stmt(self):
-        if self.IfStmt:
+        if self.IfStmt():
             return True
-        elif self.ForStmt:
+        elif self.ForStmt():
             return True
-        elif self.Expr and self.term(";"):
+        elif self.Expr() and self.term(";"):
             return True
         else:
             # Backtracking
             return False
 
     def IfStmt(self):
-        if self.lookahead_term == "if":
+        if self.lookahead_term() == "if":
             return (
                 self.term("if")
                 and self.term("(")
-                and self.Expr
+                and self.Expr()
                 and self.term(")")
-                and self.Stmt
-                and self.ElseStmt
+                and self.Stmt()
+                and self.ElseStmt()
             )
         else:
             # Error?
             return False
 
     def ElseStmt(self):
-        if self.lookahead_term == "else":
+        if self.lookahead_term() == "else":
             return self.term("else") and self.Stmt
         else:
             # epsilon
             return True
 
     def ForStmt(self):
-        if self.lookahead_term == "for":
+        if self.lookahead_term() == "for":
             return (
                 self.term("for")
                 and self.term("(")
-                and self.OptExpr
+                and self.OptExpr()
                 and self.term(";")
-                and self.Expr
+                and self.Expr()
                 and self.term(";")
-                and self.OptExpr
+                and self.OptExpr()
                 and self.term(")")
-                and self.Stmt
+                and self.Stmt()
             )
 
     def OptExpr(self):
-        if self.Expr:
+        if self.Expr():
             return True
         else:
             return True
 
     def MultExpr(self):
-        if self.Expr:
+        if self.Expr():
             return True
-        elif self.Expr and self.MultExpr:
+        elif self.Expr() and self.MultExpr():
             return True
 
     def Expr(self):
-        if self.LValue and self.term("=") and self._Expr:
+        if self.LValue() and self.term("=") and self._Expr():
             return True
-        elif self._Expr:
+        elif self._Expr():
             return True
         else:
             # Backtracking
             return False
 
     def _Expr(self):
-        if self.T and self._E:
+        if self.T() and self._E():
             return True
         else:
             # Backtracking
             return False
 
     def _E(self):
-        if self.lookahead_term == "||":
-            return self.term("||") and self.T and self._E
+        if self.lookahead_term() == "||":
+            return self.term("||") and self.T() and self._E()
         else:
             # epsilon
             return True
 
     def T(self):
-        if self.F and self._T:
+        if self.F() and self._T():
             return True
         else:
             # Backtracking
             return False
 
     def _T(self):
-        if self.term("&&") and self.F and self._T:
+        if self.term("&&") and self.F() and self._T():
             return True
         else:
             # epsilon
             return True
 
     def F(self):
-        if self.G and self._F:
+        if self.G() and self._F():
             return True
         else:
             # Backtracking
             return False
 
     def _F(self):
-        if self.lookahead_term == "==":
-            return self.term("==") and self.G and self._F
-        elif self.lookahead_term == "!=":
-            return self.term("!=") and self.G and self._F
+        lookahead = self.lookahead_term()
+        if lookahead == "==":
+            return self.term("==") and self.G() and self._F()
+        elif lookahead == "!=":
+            return self.term("!=") and self.G() and self._F()
         else:
             # epsilon
             return True
 
     def G(self):
-        if self.H and self._G:
+        if self.H() and self._G():
             return True
         else:
             # Backtracking
             return False
 
     def _G(self):
-        if self.lookahead_term == "<":
-            return self.term("<") and self.H and self._G
-        if self.lookahead_term == ">":
-            return self.term(">") and self.H and self._G
-        if self.lookahead_term == "<=":
-            return self.term("<=") and self.H and self._G
-        if self.lookahead_term == ">=":
-            return self.term(">=") and self.H and self._G
+        lookahead = self.lookahead_term()
+        if lookahead == "<":
+            return self.term("<") and self.H() and self._G()
+        if lookahead == ">":
+            return self.term(">") and self.H() and self._G()
+        if lookahead == "<=":
+            return self.term("<=") and self.H() and self._G()
+        if lookahead == ">=":
+            return self.term(">=") and self.H() and self._G()
         else:
             # epsilon
             return True
 
     def H(self):
-        if self.J and self._H:
+        if self.J() and self._H():
             return True
         else:
             # Backtracking
             return False
 
     def _H(self):
-        if self.lookahead_term == "+":
-            return self.term("+") and self.J and self._H
-        elif self.lookahead_term == "-":
-            return self.term("-") and self.J and self._H
+        lookahead = self.lookahead_term()
+        if lookahead == "+":
+            return self.term("+") and self.J() and self._H()
+        elif lookahead == "-":
+            return self.term("-") and self.J() and self._H()
         else:
             # Backtracking
             # epsilon
             return True
 
     def J(self):
-        if self.K and self._J:
+        if self.K() and self._J():
             return True
         else:
             # Backtracking
             return False
 
     def _J(self):
-        if self.lookahead_term == "*":
-            return self.term("*") and self.K and self._J
-        elif self.lookahead_term == "/":
-            return self.term("/") and self.K and self._J
-        elif self.lookahead_term == "%":
-            return self.term("%") and self.K and self._J
+        lookahead = self.lookahead_term()
+        if lookahead == "*":
+            return self.term("*") and self.K() and self._J()
+        elif lookahead == "/":
+            return self.term("/") and self.K() and self._J()
+        elif lookahead == "%":
+            return self.term("%") and self.K() and self._J()
         else:
             # epsilon
             return True
 
     def K(self):
-        if self.lookahead_term == "-":
-            return self.term("-") and self.Expr
-        elif self.lookahead_term == "!":
-            return self.term("!") and self.Expr
-        elif self.L:
+        lookahead = self.lookahead_term()
+        if lookahead == "-":
+            return self.term("-") and self.Expr()
+        elif lookahead == "!":
+            return self.term("!") and self.Expr()
+        elif self.L():
             return True
         else:
             # Backtracking
             return False
 
     def L(self):
-        if self.lookahead_term == "(":
-            return self.term("(") and self.Expr and self.term(")")
-        elif self.lookahead_term == "this":
+        lookahead = self.lookahead_term()
+        if lookahead == "(":
+            return self.term("(") and self.Expr() and self.term(")")
+        elif lookahead == "this":
             return self.term("this")
-        elif self.lookahead_term == "New":
+        elif lookahead == "New":
             return (
                 self.term("New")
                 and self.term("(")
-                and self.term_cat("T_Identifier")
+                and self.term_cat("Identifier")
                 and self.term(")")
             )
-        elif self.Constant:
+        elif self.Constant():
             return True
-        elif self.LValue:
+        elif self.LValue():
             return True
         else:
             # Backtracking and error
             return False
 
     def LValue(self):
-        if self.lookahead_cat == "T_Identifier":
-            return self.term_cat("T_Identifier")
-        elif self.Expr and self.term(".") and self.term_cat("T_Identifier"):
+        if self.lookahead_cat() == "Identifier":
+            return self.term_cat("Identifier")
+        elif self.Expr() and self.term(".") and self.term_cat("Identifier"):
             return True
-        elif self.Expr and self.term("[") and self.Expr and self.term("]"):
+        elif self.Expr() and self.term("[") and self.Expr() and self.term("]"):
             return True
         else:
             # Backtracking and error
             return False
 
     def Constant(self):
-        if self.lookahead_cat == "T_IntConstant_Hexadecimal":
-            return self.term_cat("T_IntConstant_Hexadecimal")
-        elif self.lookahead_cat == "T_IntConstant_Decimal":
-            return self.term_cat("T_IntConstant_Decimal")
-        elif self.lookahead_cat == "T_StringConstant":
-            return self.term_cat("T_StringConstant")
-        elif self.lookahead_cat == "T_BooleanConstant":
-            return self.term_cat("T_BooleanConstant")
-        elif self.lookahead_cat == "T_DoubleConstant":
-            return self.term_cat("T_DoubleConstant")
+        lookahead = self.lookahead_cat()
+        if lookahead == "IntConstant_Hexadecimal":
+            return self.term_cat("IntConstant_Hexadecimal")
+        elif lookahead == "IntConstant_Decimal":
+            return self.term_cat("IntConstant_Decimal")
+        elif lookahead == "StringConstant":
+            return self.term_cat("StringConstant")
+        elif lookahead == "BooleanConstant":
+            return self.term_cat("BooleanConstant")
+        elif lookahead == "DoubleConstant":
+            return self.term_cat("DoubleConstant")
         else:
             # epsilon
             return True
 
     def term(self, expected):
         if self.__tokens__[self.cursor].word == expected:
-            self.cursor += self.cursor
+            self.cursor += 1
             return True
         else:
             return False
 
     def term_cat(self, expected):
         if self.__tokens__[self.cursor].category == expected:
-            self.cursor += self.cursor
+            self.cursor += 1
             return True
         else:
             return False

@@ -19,7 +19,7 @@ def main(args):
 
         # Print syntactical errors on screen
         else:
-            print(*lexer.get_errors(), sep="\n")
+            print(parser.get_errors(), sep="\n")
 
     # Print lexical errors on screen and write to the file
     else:
