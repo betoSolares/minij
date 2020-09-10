@@ -38,31 +38,36 @@ class Parser:
     def __multiple_expected__(self, expected):
         return " or ".join(expected)
 
+
     # Beginning of parsing algorithm
+	# Program → Decl _Program
     def Program(self):
         return self.Decl() and self._Program()
 
+	# _Program → Program | ε
     def _Program(self):
         if self.Program():
             return True
         else:
             return True
 
+	# Decl → VarDecl | FuncDecl
     def Decl(self):
-        if self.VarDecl():
-            return True
-        elif self.FuncDeclare():
+        # return self.VarDecl() or self.FuncDeclare()
+        if self.VarDecl() or self.FuncDeclare():
             return True
         else:
-            # Backtracking
             return False
 
+	# VarDecl → Variable ;
     def VarDecl(self):
         return self.Variable() and self.term(";")
 
+	# Variable → Type ident
     def Variable(self):
         return self.Type() and self.term_cat("Identifier")
 
+	# Type → int _Type | double _Type | bool _Type| string _Type | ident _Type
     def Type(self):
         lookahead = self.lookahead_term()
         if lookahead == "int":
@@ -82,6 +87,7 @@ class Parser:
             # Backtracking
             return False
 
+	# _Type → [] _Type | ε
     def _Type(self):
         if self.lookahead_term() == "[]":
             return self.term("[]") and self._Type()
@@ -89,6 +95,7 @@ class Parser:
             # epsilon?
             return True
 
+	# FuncDecl → Type ident ( Formals ) _Stmt | void ident ( Formals ) _Stmt
     def FuncDeclare(self):
         if self.lookahead_term() == "void":
             return (
@@ -112,26 +119,34 @@ class Parser:
             # Backtracking
             return False
 
+	# _Stmt → Stmt _Stmt | ε
     def _Stmt(self):
+        # return (self.Stmt() and self._Stmt()) or True
         if self.Stmt() and self._Stmt():
             return True
         else:
             # epsilon
             return True
 
+	# Formals → _Variable , | ε
     def Formals(self):
+        # return (self._Variable() and self.term(",")) or True
         if self._Variable() and self.term(","):
             return True
         else:
             return True
 
+	# _Variable → Variable | Variable _Variable
     def _Variable(self):
+        # return self.Variable() or (self.Variable() and self._Variable())
         if self.Variable():
             return True
         elif self.Variable() and self._Variable():
             return True
 
+	# Stmt → IfStmt | ForStmt | Expr ;
     def Stmt(self):
+        # return self.IfStmt() or self.ForStmt() or (self.Expr() and self.term(";"))
         if self.IfStmt():
             return True
         elif self.ForStmt():
@@ -139,9 +154,9 @@ class Parser:
         elif self.Expr() and self.term(";"):
             return True
         else:
-            # Backtracking
             return False
 
+	# IfStmt → if ( Expr ) Stmt ElseStmt
     def IfStmt(self):
         if self.lookahead_term() == "if":
             return (
@@ -156,6 +171,7 @@ class Parser:
             # Error?
             return False
 
+	# ElseStmt → else Stmt | ε
     def ElseStmt(self):
         if self.lookahead_term() == "else":
             return self.term("else") and self.Stmt
@@ -163,6 +179,7 @@ class Parser:
             # epsilon
             return True
 
+	# ForStmt → for ( OptExpr ; Expr ; OptExpr ) Stmt
     def ForStmt(self):
         if self.lookahead_term() == "for":
             return (
@@ -177,19 +194,25 @@ class Parser:
                 and self.Stmt()
             )
 
+	# OptExpr → Expr | ε
     def OptExpr(self):
+        # return self.Expr() or True
         if self.Expr():
             return True
         else:
             return True
 
+	# MultExpr → Expr | Expr MultExpr
     def MultExpr(self):
+        # return self.Expr() or (self.Expr() and self.MultExpr())
         if self.Expr():
             return True
         elif self.Expr() and self.MultExpr():
             return True
 
+	# Expr → _Expr | LValue = _Expr
     def Expr(self):
+        # return (self.LValue() and self.term("=") and self._Expr()) or self._Expr()
         if self.LValue() and self.term("=") and self._Expr():
             return True
         elif self._Expr():
@@ -198,13 +221,16 @@ class Parser:
             # Backtracking
             return False
 
+	# _Expr → T _E
     def _Expr(self):
+        # return self.T() and self._E()
         if self.T() and self._E():
             return True
         else:
             # Backtracking
             return False
 
+	# _E → || T _E | ε
     def _E(self):
         if self.lookahead_term() == "||":
             return self.term("||") and self.T() and self._E()
@@ -212,27 +238,33 @@ class Parser:
             # epsilon
             return True
 
+	# T → F _T
     def T(self):
+        # return self.F() and self._T()
         if self.F() and self._T():
             return True
         else:
             # Backtracking
             return False
 
+	# _T → && F _T | ε
     def _T(self):
-        if self.term("&&") and self.F() and self._T():
-            return True
+        if self.lookahead_term() == "&&":
+            return self.term("&&") and self.F() and self._T()
         else:
             # epsilon
             return True
 
+	# F → G _F
     def F(self):
+        # return self.G() and self._F()
         if self.G() and self._F():
             return True
         else:
             # Backtracking
             return False
 
+	# _F → == G _F | != G _F | ε
     def _F(self):
         lookahead = self.lookahead_term()
         if lookahead == "==":
@@ -243,13 +275,16 @@ class Parser:
             # epsilon
             return True
 
+	# G → H _G
     def G(self):
+        # return self.H() and self._G()
         if self.H() and self._G():
             return True
         else:
             # Backtracking
             return False
 
+	# _G → < H _G | > H _G | <= H _G | >= H _G | ε
     def _G(self):
         lookahead = self.lookahead_term()
         if lookahead == "<":
@@ -264,13 +299,16 @@ class Parser:
             # epsilon
             return True
 
+	# H → J _H
     def H(self):
+        # return self.J() and self._H()
         if self.J() and self._H():
             return True
         else:
             # Backtracking
             return False
 
+	# _H → + J _H | - J _H | ε
     def _H(self):
         lookahead = self.lookahead_term()
         if lookahead == "+":
@@ -282,13 +320,16 @@ class Parser:
             # epsilon
             return True
 
+	# J → K _J
     def J(self):
+        # return self.K() and self._J()
         if self.K() and self._J():
             return True
         else:
             # Backtracking
             return False
 
+	# _J → * K _J | / K _J | % K _J | ε
     def _J(self):
         lookahead = self.lookahead_term()
         if lookahead == "*":
@@ -301,39 +342,48 @@ class Parser:
             # epsilon
             return True
 
+	# K → New ( ident ) | L
     def K(self):
-        lookahead = self.lookahead_term()
-        if lookahead == "-":
-            return self.term("-") and self.Expr()
-        elif lookahead == "!":
-            return self.term("!") and self.Expr()
-        elif self.L():
-            return True
-        else:
-            # Backtracking
-            return False
-
-    def L(self):
-        lookahead = self.lookahead_term()
-        if lookahead == "(":
-            return self.term("(") and self.Expr() and self.term(")")
-        elif lookahead == "this":
-            return self.term("this")
-        elif lookahead == "New":
+        if self.lookahead_term() == "New":
             return (
                 self.term("New")
                 and self.term("(")
                 and self.term_cat("Identifier")
                 and self.term(")")
             )
-        elif self.Constant():
-            return True
-        elif self.LValue():
+        elif self.L():
             return True
         else:
-            # Backtracking and error
             return False
 
+	# L → - Expr | ! Expr | M
+    def L(self):
+        lookahead = self.lookahead_term()
+        if lookahead == "-":
+            return self.term("-") and self.Expr()
+        elif lookahead == "!":
+            return self.term("!") and self.Expr()
+        elif self.M():
+            return True
+        else:
+            return False
+
+	# M → LValue | ( Expr ) | this | Constant
+    def M(self):
+        lookahead = self.lookahead_term()
+        if self.LValue():
+            return True
+        elif lookahead == "(":
+            return self.term("(") and self.Expr() and self.term(")")
+        elif lookahead == "this":
+            return self.term("this")
+        elif self.Constant():
+            return True
+        else:
+            return False
+
+	# LValue → ident | Expr _LValue
+	# HAVE TO FIX THIS
     def LValue(self):
         if self.lookahead_cat() == "Identifier":
             return self.term_cat("Identifier")
@@ -342,9 +392,9 @@ class Parser:
         elif self.Expr() and self.term("[") and self.Expr() and self.term("]"):
             return True
         else:
-            # Backtracking and error
             return False
 
+	# Constant → intConstant | doubleConstant | boolConstant | stringConstant | null
     def Constant(self):
         lookahead = self.lookahead_cat()
         if lookahead == "IntConstant_Hexadecimal":
@@ -357,9 +407,10 @@ class Parser:
             return self.term_cat("BooleanConstant")
         elif lookahead == "DoubleConstant":
             return self.term_cat("DoubleConstant")
+		elif self.lookahead_term() == "null":
+            return self.term("null")
         else:
-            # epsilon
-            return True
+            return False
 
     def term(self, expected):
         if self.__tokens__[self.cursor].word == expected:
