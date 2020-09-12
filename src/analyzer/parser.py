@@ -4,13 +4,24 @@ class Parser:
         self.__errors__ = []
         self.cursor = 0
         self.saved = 0
+        self.__expected__ = []
 
     # Try to parse the tokens list, true if no errors
     def try_parse(self, tokens):
         # self.__tokens__ = iter(tokens)
         self.__tokens__ = tokens
-        breakpoint()
-        return self.Program() and len(self.__errors__) == 0
+        # breakpoint()
+        while not len(self.__tokens__) == self.cursor:
+            self.__expected__ = []
+            self.Program()
+            if not len(self.__tokens__) == self.cursor:
+                self.__add_error__(self.__tokens__[self.cursor],self.__expected__)
+                self.cursor += 1
+            else:
+                break
+
+        return len(self.__errors__) == 0
+
 
     # Get all the errors
     def get_errors(self):
@@ -42,7 +53,13 @@ class Parser:
     # Beginning of parsing algorithm
 	# Program → Decl _Program
     def Program(self):
-        return self.Decl() and self._Program()
+        if self.Decl():
+            return self._Program()
+        else:
+            # self.__expected__ = []
+            # self.__expected__.append("unrecognized")
+            return False
+        # return self.Decl() and self._Program()
 
 	# _Program → Program | ε
     def _Program(self):
@@ -53,19 +70,40 @@ class Parser:
 
 	# Decl → VarDecl | FuncDecl
     def Decl(self):
-        # return self.VarDecl() or self.FuncDeclare()
-        if self.VarDecl() or self.FuncDeclare():
-            return True
-        else:
-            return False
+        return self.VarDecl() or self.FuncDeclare()
+        # if not self.VarDecl():
+        #     if not self.FuncDeclare():
+        #         self.__expected__ = []
+        #         self.__expected__.append("unrecognized")
+        #         return False
+        #     else:
+        #         return True
+        # else:
+        #     return True
+
 
 	# VarDecl → Variable ;
     def VarDecl(self):
-        return self.Variable() and self.term(";")
+        if self.Variable():
+            if self.term(";"):
+                return True
+            else:
+                self.__expected__.append("a ;")
+                return False
+        else:
+            return False
 
 	# Variable → Type ident
     def Variable(self):
-        return self.Type() and self.term_cat("Identifier")
+        if self.Type():
+            if self.term_cat("Identifier"):
+                return True
+            else:
+                self.__expected__.append(" an identifier")
+                return False
+        else:
+            self.__expected__.append("a type value")
+            return False
 
 	# Type → int _Type | double _Type | bool _Type| string _Type | ident _Type
     def Type(self):
@@ -84,7 +122,7 @@ class Parser:
         elif self.lookahead_cat() == "Identifier":
             return self.term_cat("Identifier") and self._Type()
         else:
-            # Backtracking
+            # self.__expected__.append("a declaration")
             return False
 
 	# _Type → [] _Type | ε
@@ -97,26 +135,36 @@ class Parser:
 
 	# FuncDecl → Type ident ( Formals ) _Stmt | void ident ( Formals ) _Stmt
     def FuncDeclare(self):
-        if self.lookahead_term() == "void":
-            return (
-                self.term("void")
-                and self.term_cat("Identifier")
-                and self.term("(")
-                and self.Formals()
-                and self.term(")")
-                and self._Stmt()
-            )
-        elif self.lookahead_cat() == "Identifier":
-            return (
-                self.Type()
-                and self.term_cat("Identifier")
-                and self.term("(")
-                and self.Formals()
-                and self.term(")")
-                and self._Stmt()
-            )
+        if self.term("void"):
+            if self.term_cat("Identifier"):
+                lookparth = self.lookahead_term()
+                if lookparth == "()":
+                    self.term("()")
+                    return self._Stmt()
+                elif lookparth == "(":
+                    self.term("(")
+                    return self.Formals() and self.term(")") and self._Stmt()
+                else:
+                    self.__expected__.append("a (")
+                    return False
+            else:
+                self.__expected__.append("an identifier")
+                return False
+        elif self.Type():
+            if self.term_cat("Identifier"):
+                lookparth = self.lookahead_term()
+                if lookparth == "()":
+                    return self._Stmt()
+                elif lookparth == "(":
+                    return self.Formals() and self.term(")") and self._Stmt()
+                else:
+                    self.__expected__.append("a (")
+                    return False
+            else:
+                self.__expected__.append("an identifier")
+                return False
         else:
-            # Backtracking
+            self.__expected__.append("unrecognized token")
             return False
 
 	# _Stmt → Stmt _Stmt | ε
@@ -151,24 +199,32 @@ class Parser:
             return True
         elif self.ForStmt():
             return True
-        elif self.Expr() and self.term(";"):
-            return True
+        elif self.Expr():
+            if self.term(";"):
+                return True
+            else:
+                self.__expected__.append(" a ;")
+                return False
         else:
             return False
 
 	# IfStmt → if ( Expr ) Stmt ElseStmt
     def IfStmt(self):
-        if self.lookahead_term() == "if":
-            return (
-                self.term("if")
-                and self.term("(")
-                and self.Expr()
-                and self.term(")")
-                and self.Stmt()
-                and self.ElseStmt()
-            )
+        if self.term("if"):
+            if self.term("("):
+                if self.Expr():
+                    if self.term(")"):
+                        return self.Stmt() and self.ElseStmt()
+                    else:
+                        self.__expected__.append(" a )")
+                        return False
+                else:
+                    self.__expected__.append("an expresion")
+                    return False
+            else:
+                self.__expected__.append("a (")
+                return False
         else:
-            # Error?
             return False
 
 	# ElseStmt → else Stmt | ε
@@ -181,18 +237,38 @@ class Parser:
 
 	# ForStmt → for ( OptExpr ; Expr ; OptExpr ) Stmt
     def ForStmt(self):
-        if self.lookahead_term() == "for":
-            return (
-                self.term("for")
-                and self.term("(")
-                and self.OptExpr()
-                and self.term(";")
-                and self.Expr()
-                and self.term(";")
-                and self.OptExpr()
-                and self.term(")")
-                and self.Stmt()
-            )
+        if self.term("for"):
+            if self.term("("):
+                if self.OptExpr():
+                    if self.term(";"):
+                        if self.Expr():
+                            if self.term(";"):
+                                if self.OptExpr():
+                                    if self.term(")"):
+                                        if self.Stmt():
+                                            return True
+                                        else:
+                                            return False
+                                    else:
+                                        self.__expected__.append(" a )")
+                                        return False
+                                else:
+                                    return False
+                            else:
+                                self.__expected__.append("a ;")
+                                return False
+                        else:
+                            return False
+                    else:
+                        self.__expected__.append("a ;")
+                        return False
+                else:
+                    return False
+            else:
+                self.__expected__.append("a (")
+                return False
+        else:
+            return False
 
 	# OptExpr → Expr | ε
     def OptExpr(self):
@@ -212,13 +288,16 @@ class Parser:
 
 	# Expr → _Expr | LValue = _Expr
     def Expr(self):
-        # return (self.LValue() and self.term("=") and self._Expr()) or self._Expr()
-        if self.LValue() and self.term("=") and self._Expr():
-            return True
-        elif self._Expr():
-            return True
+        # save cursor in case of backtracking
+        self.save_cursor
+        if self.LValue():
+            if self.lookahead_term == "=":
+                return self.term("=") and self._Expr()
+            else:
+                # backtrack if '=' is not found and call _Expr
+                self.backtrack
+                return self._Expr()
         else:
-            # Backtracking
             return False
 
 	# _Expr → T _E
@@ -344,13 +423,21 @@ class Parser:
 
 	# K → New ( ident ) | L
     def K(self):
-        if self.lookahead_term() == "New":
-            return (
-                self.term("New")
-                and self.term("(")
-                and self.term_cat("Identifier")
-                and self.term(")")
-            )
+        if self.term("New"):
+            if self.term("("):
+                if self.term_cat("Identifier"):
+                        if self.term(")"):
+                            return True
+                        else:
+                            self.__expected__.append(" a ')'")
+                            return False
+                else:
+                    self.__expected__.append("an identifier")
+                    return False
+            else:
+                self.__expected__.append("a '('")
+                return False
+
         elif self.L():
             return True
         else:
@@ -383,15 +470,16 @@ class Parser:
             return False
 
 	# LValue → ident | Expr _LValue
-	# HAVE TO FIX THIS
     def LValue(self):
-        if self.lookahead_cat() == "Identifier":
-            return self.term_cat("Identifier")
-        elif self.Expr() and self.term(".") and self.term_cat("Identifier"):
-            return True
-        elif self.Expr() and self.term("[") and self.Expr() and self.term("]"):
-            return True
+        if self.term_cat("Identifier"):
+            if self.term("."):
+                return self.Expr()
+            elif self.term("["):
+                return self.Expr() and self.term("]")
+            else:
+                return True
         else:
+            self.__expected__.append("an identifier")
             return False
 
 	# Constant → intConstant | doubleConstant | boolConstant | stringConstant | null
@@ -407,9 +495,10 @@ class Parser:
             return self.term_cat("BooleanConstant")
         elif lookahead == "DoubleConstant":
             return self.term_cat("DoubleConstant")
-		elif self.lookahead_term() == "null":
+        elif self.lookahead_term() == "null":
             return self.term("null")
         else:
+            self.__expected__.append("a constant")
             return False
 
     def term(self, expected):
