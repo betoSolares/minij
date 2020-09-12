@@ -3,6 +3,7 @@
 ## Table of contents
 
 * [About](#about)
+* [Recursive Parser (Laboratorio A)](#recursive-parser)
 * [Grammar Explanation](#grammar-explanation)
 * [Getting Started](#getting-started)
 * [Usage](#usage)
@@ -18,6 +19,57 @@ The program is a very complete piece of software, as it can not only handle erro
 program itself, but it can also handle external issues such as file management and allocation. In
 addition, the program was subjected to a large number of tests.
 
+## Recursive Parser (Laboratorio A)
+En esta sección del proyecto se implementó un TDP recursivo.
+Este parser hizo uso de la siguiente gramática, la cual fue arreglada según se creyó mejor.
+```java
+Program → Decl Program’
+Program’ → Program | ε
+Decl → VariableDecl | FunctionDecl
+VariableDecl → Variable ;
+Variable → Type ident
+Type → int Type’ | double Type’ | bool Type’ | string Type’ | ident Type’
+Type’ → [] Type’ | ε
+FunctionDecl → Type ident ( Formals ) Stmt*|void ident ( Formals ) Stmt*
+Stmt* → Stmt Stmt* | ε
+Formals → Variable+ , | ε
+Variable+ → Variable | Variable Variable+
+Stmt → IfStmt | ForStmt | Expr ;
+IfStmt → if ( Expr ) Stmt elseStmt?
+elseStmt? → else Stmt | ε
+ForStmt → for ( Expr? ; Expr ; Expr? ) Stmt
+Expr? → Expr | ε
+Expr+ → Expr | Expr Expr+
+Expr → Expr’ | LValue = Expr’
+Expr’ → T E’
+E' → || T E' | ε
+T → F T'
+T' → && F T' | ε
+F → G F'
+F' → == G F' | != G F' | ε
+G → H G'
+G' → < H G' | > H G' | <= H G' | >= H G' | ε
+H → J H'
+H' → + J H' | - J H' | ε
+J → K J'
+J' → * K J' | / K J' | % K J' | ε
+K → New ( ident ) | L
+L → - Expr | ! Expr | M
+M → LValue | ( Expr ) | this | Constant
+LValue → ident | Expr LValue’
+LValue’ → . ident | [ Expr ]
+Constant → intConstant | doubleConstant | boolConstant | stringConstant | null
+```
+La forma en que se recuperan los errores en esta fase y según esta gramática es la siguiente:
+1. Una vez se haya encontrado un error en alguna de las ramas o en una línea, se prosigue a tomar
+los siguientes caminos hasta descartar todas las posibilidades. De la misma forma se agregarán
+las palabras esperadas en la posición del token erróneo.
+2. Si no se encuentra ningún match en todos los caminos, el analizador procederá a regresar a su raíz
+y terminará el proceso recursivo, pero este sigue analizando el resto de los tokens a través de un while
+que permite seguir consumiendo los tokens hasta que estos se hayan acabado.
+3. Por lo tanto, si se encuentra un error en una línea, se descartará el token en cuestión y se seguirá
+analizando, debido a que los tokens continuos a ese dependen del mismo, estos también marcarán error, y
+así sucesivamente, hasta que se encuentre un token correcto de nuevo.
 ## Grammar Explanation
 
 The syntax of the language is very similar to the syntax of Java, which is why the tokens are
