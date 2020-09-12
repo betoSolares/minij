@@ -70,16 +70,19 @@ class Parser:
 
     # Decl → VarDecl | FuncDecl
     def Decl(self):
-        return self.VarDecl() or self.FuncDeclare()
-        # if not self.VarDecl():
-        #     if not self.FuncDeclare():
-        #         self.__expected__ = []
-        #         self.__expected__.append("unrecognized")
-        #         return False
-        #     else:
-        #         return True
-        # else:
-        #     return True
+        # return self.VarDecl() or self.FuncDeclare()
+        self.save_cursor()
+        if not self.VarDecl():
+            self.backtrack()
+            self.__expected__ = []
+            if not self.FuncDeclare():
+                self.__expected__ = []
+                self.__expected__.append("unrecognized")
+                return False
+            else:
+                return True
+        else:
+            return True
 
     # VarDecl → Variable ;
     def VarDecl(self):
@@ -153,8 +156,10 @@ class Parser:
             if self.term_cat("Identifier"):
                 lookparth = self.lookahead_term()
                 if lookparth == "()":
+                    self.term("()")
                     return self._Stmt()
                 elif lookparth == "(":
+                    self.term("(")
                     return self.Formals() and self.term(")") and self._Stmt()
                 else:
                     self.__expected__.append("a (")
@@ -287,13 +292,15 @@ class Parser:
     # Expr → _Expr | LValue = _Expr
     def Expr(self):
         # save cursor in case of backtracking
-        self.save_cursor
+        # breakpoint()
+        self.save_cursor()
         if self.LValue():
             if self.lookahead_term == "=":
                 return self.term("=") and self._Expr()
             else:
+                # breakpoint()
                 # backtrack if '=' is not found and call _Expr
-                self.backtrack
+                self.backtrack()
                 return self._Expr()
         else:
             return False
@@ -500,17 +507,23 @@ class Parser:
             return False
 
     def term(self, expected):
-        if self.__tokens__[self.cursor].word == expected:
-            self.cursor += 1
-            return True
-        else:
+        try:
+            if self.__tokens__[self.cursor].word == expected:
+                self.cursor += 1
+                return True
+            else:
+                return False
+        except Exception:
             return False
 
     def term_cat(self, expected):
-        if self.__tokens__[self.cursor].category == expected:
-            self.cursor += 1
-            return True
-        else:
+        try:
+            if self.__tokens__[self.cursor].category == expected:
+                self.cursor += 1
+                return True
+            else:
+                return False
+        except Exception:
             return False
 
     def save_cursor(self):
@@ -520,10 +533,16 @@ class Parser:
         self.cursor = self.saved
 
     def lookahead_term(self):
-        return self.__tokens__[self.cursor].word
+        try:
+            return self.__tokens__[self.cursor].word
+        except Exception:
+            return False
 
     def lookahead_cat(self):
-        return self.__tokens__[self.cursor].category
+        try:
+            return self.__tokens__[self.cursor].category
+        except Exception:
+            return False
 
     def __error_columns__(self, token):
         if token.finish is None:
