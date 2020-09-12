@@ -22,7 +22,7 @@ addition, the program was subjected to a large number of tests.
 ## Recursive Parser (Laboratorio A)
 En esta sección del proyecto se implementó un TDP recursivo.
 Este parser hizo uso de la siguiente gramática, la cual fue arreglada según se creyó mejor.
-```java
+```
 Program → Decl Program’
 Program’ → Program | ε
 Decl → VariableDecl | FunctionDecl
