@@ -65,7 +65,7 @@ class Lexer:
             "boolean",
             "string",
             "class",
-            "const",
+            "static",
             "interface",
             "null",
             "this",
