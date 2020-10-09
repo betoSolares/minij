@@ -326,7 +326,7 @@ class Lexer:
         elif re.search(r"^[a-zA-Z\$][0-9a-zA-Z\$]*$", word):
             # The identifier can't be greater than 31 chars length
             if len(word) > 31:
-                self.__add_error__(word, line, col, "Identifier to long")
+                self.__add_error__(word, line, col, "Identifier to long", True)
                 self.__add_token__(word[:31], line, col, "Identifier")
             else:
                 self.__add_token__(word, line, col, "Identifier")
@@ -388,13 +388,17 @@ class Lexer:
 
         self.__analysis__.append(token)
 
-    # Add a new error to the list of analysis
-    def __add_error__(self, word, line, col, reason):
-        self.__has_errors__ = True
+    # Add a new item to the list of analysis
+    def __add_error__(self, word, line, col, reason, warning=False):
+        if warning:
+            category = "Warning"
+        else:
+            self.__has_errors__ = True
+            category = "Error"
 
         if len(word) > 1:
-            error = Token(word, line, col - len(word) + 1, col, "Error", reason)
+            item = Token(word, line, col - len(word) + 1, col, category, reason)
         else:
-            error = Token(word, line, col, None, "Error", reason)
+            item = Token(word, line, col, None, category, reason)
 
-        self.__analysis__.append(error)
+        self.__analysis__.append(item)
