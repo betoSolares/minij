@@ -94,9 +94,17 @@ class Lexer:
     def get_errors(self):
         return [x for x in self.__analysis__ if x.category == "Error"]
 
+    # Get a list with all the warnings
+    def get_warnings(self):
+        return [x for x in self.__analysis__ if x.category == "Warning"]
+
     # Get a list with all the tokens
     def get_tokens(self):
-        return [x for x in self.__analysis__ if x.category != "Error"]
+        return [
+            x
+            for x in self.__analysis__
+            if x.category != "Error" and x.category != "Warning"
+        ]
 
     # Get a list with all the errors and tokens
     def get_all(self):
