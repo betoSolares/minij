@@ -196,8 +196,8 @@ please use the absolute path to the executable file.
   that can be parsed by minij
 */
 
-public class Main {
-    public static void main(String[] args) {
+class Main {
+    void main(string[] args) {
         System.out.println("This will be printed");
     }
 }
