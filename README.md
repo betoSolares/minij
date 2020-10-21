@@ -30,9 +30,9 @@ separated by words using the blank spaces and special characters of the grammar.
 
 ### Syntax Analyzer (Parser)
 
-This is the second phase of the compiler. In this case we are using a SLR or LR(0) parser, beacuse
-it was the one that least conflicts and states produced for our grammar. The parser reads all the
-tokens found by the lexer and analyze them conforming to the rules of aour grammar.
+This is the second phase of the compiler. In this case we are using a SLR or LR(0) parser, because
+it had the least amount of conflicts and states produced for our grammar. The parser reads all the
+tokens found by the lexer and analyzes them conforming to the rules of our grammar.
 
 If you need more information check the [Analysis](https://github.com/betoSolares/minij/blob/master/docs/Analysis.pdf)
 or [Parsing Table](https://github.com/betoSolares/minij/blob/master/docs/ParsingTable.xlsx) files.
@@ -77,7 +77,7 @@ compiler. They cannot be used in your program.
 
 ### Identifiers
 
-An identifier is a sequence of letters, digits and dollar sign. It can start with anyone except a
+An identifier is a sequence of letters, digits and dollar sign. It can start with anything except a
 number.
 
 ```java
@@ -117,7 +117,7 @@ int base16 = 0X0;
 int anotherBase16 = 0x12aE;
 ```
 
-* A double constant it must be a sequence of digits followed by a point and:
+* A double constant must be a sequence of digits followed by a point and:
     * A sequence of numbers or nothing.
     * An exponential notation with the sign of the exponent.
 
@@ -172,8 +172,8 @@ These should create a directory called `build` with an executable file inside ca
 The program is designed to be run through the command line, if you try to run it through a
 GUI you may encounter some errors.
 
-The compiler can receive any plain text file regardless of it's extension and can only work with
-one file at a time. After analyzing the file all, all the errors and warnings found are printed
+The compiler can receive any plain text file regardless of its extension and can only work with
+one file at a time. After analyzing the file, all the errors and warnings found are printed
 on the screen.
 
 The basic instruction to use the program would be the following:
