@@ -12,6 +12,7 @@
 *.txt             text
 *.pdf             diff=astextplain
 *.PDF             diff=astextplain
+*.xlsx            binary diff=exif
 
 # Configs
 *.cfg             text
