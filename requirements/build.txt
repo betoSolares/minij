@@ -1,1 +1,4 @@
+pyexcel==0.6.5
+pyexcel-io==0.6.3
+pyexcel-xls==0.6.1
 pyinstaller==4.0
