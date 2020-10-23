@@ -155,6 +155,7 @@ class Grammar:
             "void",
             ",",
             "extends",
+            "implements",
             "if",
             "while",
             "for",
