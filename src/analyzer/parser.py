@@ -1,6 +1,7 @@
 from .grammar import Grammar
 from .token import Token
 
+
 class Parser:
     def __init__(self):
         self.__errors = []
@@ -19,9 +20,8 @@ class Parser:
         while True:
             state = int(stack[-1])
             token = input_stream[position]
-
-            print(state, token.word, token.category)
-
+            terminal = self.__get_equivalent__(token)
+            print(state, token.word, token.category, terminal)
 
             if position < len(input_stream) - 1:
                 position += 1
@@ -30,7 +30,10 @@ class Parser:
 
     # Get the equivalent terminal for the category of the token
     def __get_equivalent__(self, token):
-        if token.category == "IntConstant_Decimal" or token.category == "IntConstant_Hexadecimal":
+        if (
+            token.category == "IntConstant_Decimal"
+            or token.category == "IntConstant_Hexadecimal"
+        ):
             return "intConstant"
 
         elif token.category == "DoubleConstant":
@@ -42,11 +45,14 @@ class Parser:
         elif token.category == "BooleanConstant":
             return "booleanConstant"
 
-        elif token.category == "DoubleOperator" or token.category == "SingleOperator":
+        elif (
+            token.category == "DoubleOperator"
+            or token.category == "SingleOperator"
+        ):
             return token.word
 
         elif token.category == "Identifier":
             return "ident"
 
         else:
-            return token.category
+            return token.word
