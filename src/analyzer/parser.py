@@ -4,8 +4,8 @@ from .token import Token
 
 class Parser:
     def __init__(self):
-        self.__errors = []
-        self.grammar = Grammar()
+        self.__errors__ = []
+        self.__grammar__ = Grammar()
 
     # Try analyze
     def Analyze(self, tokens):
@@ -13,15 +13,22 @@ class Parser:
         stack = ["0"]
         position = 0
 
-        #  for i in range(len(self.grammar.table)):
-        #      print(i, " -> ", self.grammar.table[i])
-        #      print("###################################################################3")
-
         while True:
             state = int(stack[-1])
             token = input_stream[position]
-            terminal = self.__get_equivalent__(token)
-            print(state, token.word, token.category, terminal)
+            actions = self.__get_action__(token, state)
+
+            if actions != -1:
+                if len(actions) == 1:
+                    print(state, token.word, token.category, actions[0][0], actions[0][1])
+
+                # Conflicts
+                else:
+                    print("Error")
+
+            # Error not word in terminals
+            else:
+                break
 
             if position < len(input_stream) - 1:
                 position += 1
@@ -56,3 +63,28 @@ class Parser:
 
         else:
             return token.word
+
+    # Get the action to make
+    def __get_action__(self, token, state):
+        terminal = self.__get_equivalent__(token)
+        if terminal not in self.__grammar__.table[0]:
+            return -1
+
+        actions = []
+        index = self.__grammar__.table[0].index(terminal)
+        raw = str(self.__grammar__.table[state + 1][index]).split("/")
+
+        for item in raw:
+            if not item:
+                continue
+
+            if item.startswith("s"):
+                actions.append(("Shift", int(item[1:])))
+            elif item.startswith("r"):
+                actions.append(("Reduce", int(item[1:])))
+            elif item == "acc":
+                actions.append(("Accept", -1))
+            else:
+                actions.append(("Goto", int(item)))
+
+        return actions
