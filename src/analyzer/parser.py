@@ -11,28 +11,46 @@ class Parser:
     def Analyze(self, tokens):
         input_stream = tokens + [Token("$", "-1", "-1", "-1", "EndInputStream")]
         stack = ["0"]
+        symbols = []
         position = 0
 
         while True:
             state = int(stack[-1])
             token = input_stream[position]
-            actions = self.__get_action__(token, state)
 
-            if actions != -1:
+            # Check if the word is a terminal
+            if self.__get_equivalent__(token) in self.__grammar__.table[0]:
+                actions = self.__get_action__(token, state)
+
+                # Actions
                 if len(actions) == 1:
-                    print(state, token.word, token.category, actions[0][0], actions[0][1])
+                    if actions[0][0] == "Shift":
+                        stack.append(str(actions[0][1]))
+                        symbols.append(token.word)
+                        position += 1
+
+                    elif actions[0][0] == "Reduce":
+                        rule = self.__grammar__.rules.get(int(actions[0][1]))
+                        length = 0 if rule[1] == "''" else len(rule[1].split())
+                        stack = stack[:len(stack)-length]
+                        symbols = symbols[:len(symbols)-length]
+                        symbols.append(rule[0])
+                        state = int(stack[-1])
+                        index = self.__grammar__.table[0].index(rule[0])
+                        goto = str(self.__grammar__.table[state + 1][index])
+                        stack.append(str(goto))
+
+                    else:
+                        break
 
                 # Conflicts
                 else:
-                    print("Error")
+                    print("Error Conflicts")
+                    break
 
             # Error not word in terminals
             else:
-                break
-
-            if position < len(input_stream) - 1:
-                position += 1
-            else:
+                print("Error not terminal")
                 break
 
     # Get the equivalent terminal for the category of the token
@@ -67,9 +85,6 @@ class Parser:
     # Get the action to make
     def __get_action__(self, token, state):
         terminal = self.__get_equivalent__(token)
-        if terminal not in self.__grammar__.table[0]:
-            return -1
-
         actions = []
         index = self.__grammar__.table[0].index(terminal)
         raw = str(self.__grammar__.table[state + 1][index]).split("/")
@@ -82,9 +97,7 @@ class Parser:
                 actions.append(("Shift", int(item[1:])))
             elif item.startswith("r"):
                 actions.append(("Reduce", int(item[1:])))
-            elif item == "acc":
-                actions.append(("Accept", -1))
             else:
-                actions.append(("Goto", int(item)))
+                actions.append(("Accept", -1))
 
         return actions
