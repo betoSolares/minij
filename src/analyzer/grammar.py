@@ -7,10 +7,15 @@ import pyexcel_xls
 
 class Grammar:
     def __init__(self):
+        self.__follows__ = self.__set_follows__()
         self.__rules__ = self.__set_rules__()
-        self.__terminals__ = self.__set_terminals()
+        self.__terminals__ = self.__set_terminals__()
         self.__nonterminals__ = self.__set_nonterminals__()
         self.__table__ = self.__set_table__()
+
+    @property
+    def follows(self):
+        return self.__follows__
 
     @property
     def rules(self):
@@ -27,6 +32,86 @@ class Grammar:
     @property
     def table(self):
         return self.__table__
+
+    # Follows of the non terminals
+    def __set_follows__(self):
+        return dict(
+            [
+                ("Init", "$"),
+                ("Program", "$"),
+                (
+                    "DeclAdditional",
+                    (
+                        "static class interface int double boolean "
+                        "string ident void $ ''"
+                    ),
+                ),
+                (
+                    "Decl",
+                    (
+                        (
+                            "static class interface int double boolean string "
+                            "ident void $"
+                        )
+                    ),
+                ),
+                ("ConstType", "ident []"),
+                ("Type", "ident []"),
+                ("FuncProtoInit", "ident"),
+                ("Formals", ")"),
+                ("Extends", "''"),
+                ("Implements", "{ ident"),
+                ("ImplementsIdentPlus", "{ ident"),
+                ("Field", "}"),
+                ("Prototype", "}"),
+                (
+                    "StmtBlock",
+                    (
+                        "'' ; if while for break return System { ident New - !"
+                        " ( this intConstant doubleConstant booleanConstant "
+                        "stringConstant null else static class interface int "
+                        "double boolean string void $",
+                    ),
+                ),
+                ("VariableDeclStar", "static ''"),
+                (
+                    "ConstDeclStar",
+                    (
+                        "'' ; if while for break return System { ident New - !"
+                        " ( this intConstant doubleConstant booleanConstant "
+                        "stringConstant null",
+                    ),
+                ),
+                ("StmtStar", "}"),
+                (
+                    "Stmt",
+                    (
+                        "'' ; if while for break return System { ident New - ! "
+                        "( this intConstant doubleConstant booleanConstant "
+                        "stringConstant null else",
+                    ),
+                ),
+                (
+                    "ElseStmt",
+                    (
+                        "'' ; if while for break return System { ident New - !"
+                        " ( this intConstant doubleConstant booleanConstant "
+                        "stringConstant null else",
+                    ),
+                ),
+                ("PrintStmtExpr", ")"),
+                ("Expr", "; ) , ''"),
+                ("ExprSubLevel1", "; ) , '' ||"),
+                ("ExprSubLevel2", "; ) , '' || !="),
+                ("ExprSubLevel3", "; ) , '' || != > >="),
+                ("ExprSubLevel4", "; ) , '' || != > >= -"),
+                ("ExprSubLevel5", "; ) , '' || != > >= - / %"),
+                ("ExprSubLevel6", "; ) , '' || != > >= - / %"),
+                ("ExprSubLevel7", "; ) , '' || != > >= - / %"),
+                ("ExprSubLevel8", "; ) , '' || != > >= - / %"),
+                ("Access", "= ; ) , '' || != > >= - / %"),
+            ]
+        )
 
     # Set the rules of the grammar
     # Number, Head, Body, Precedence
@@ -152,7 +237,7 @@ class Grammar:
 
     # List of terminals in the grammar
     # Terminal, Precedence
-    def __set_terminals(self):
+    def __set_terminals__(self):
         return dict(
             [
                 ("ident", 10),
