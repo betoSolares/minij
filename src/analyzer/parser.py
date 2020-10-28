@@ -60,6 +60,13 @@ class Parser:
                     terminal = self.__get_equivalent__(token)
                     tp = self.__grammar__.terminals.get(terminal)
 
+                    # Solve issue for declaring variable of type class in func
+                    if shift[0][1] == 10 and reduce[0][1] == 32 and state == 50:
+                        next1 = input_stream[position + 1].category
+                        next2 = input_stream[position + 2].word
+                        if next1 == "Identifier" and next2 == ";":
+                            tp = 10000
+
                     # Reduce
                     if rp >= tp:
                         rule = self.__grammar__.rules.get(int(reduce[0][1]))
@@ -82,12 +89,19 @@ class Parser:
                         stack.append(str(shift[0][1]))
                         symbols.append(token.word)
                         position += 1
-                        print("Shift from", state, "to", shift[0][1], symbols, stack)
+                        print(
+                            "Shift from",
+                            state,
+                            "to",
+                            shift[0][1],
+                            symbols,
+                            stack,
+                        )
                         self.__results__.append(("Shift", state, shift[0][1]))
 
                 # Not an action
                 else:
-                    print("Error not action")
+                    print("Error not action", symbols, token.word)
                     break
 
             # Error not word in terminals
@@ -132,7 +146,8 @@ class Parser:
         raw = str(self.__grammar__.table[state + 1][index]).split("/")
 
         for item in raw:
-            if not item: continue
+            if not item:
+                continue
             item = item.strip()
 
             if item.startswith("s"):
