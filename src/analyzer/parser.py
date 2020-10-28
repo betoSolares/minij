@@ -24,12 +24,12 @@ class Parser:
                 actions = self.__get_action__(token, state)
 
                 # Actions
-                if len(actions) < 2:
+                if len(actions) == 1:
                     if actions[0][0] == "Shift":
                         stack.append(str(actions[0][1]))
                         symbols.append(token.word)
                         position += 1
-                        print("Shift from", state, "to", actions[0][1])
+                        print("Shift from", state, "to", actions[0][1], symbols)
                         self.__results__.append(("Shift", state, actions[0][1]))
 
                     elif actions[0][0] == "Reduce":
@@ -39,25 +39,21 @@ class Parser:
                         symbols = symbols[: len(symbols) - length]
                         symbols.append(rule[0])
                         self.__results__.append(("Reduce", state, actions[0][1]))
-                        print("Reduce from", state, "to", actions[0][1])
+                        print("Reduce from", state, "to", actions[0][1], symbols)
 
                         state = int(stack[-1])
                         index = self.__grammar__.table[0].index(rule[0])
                         goto = str(self.__grammar__.table[state + 1][index])
                         stack.append(str(goto))
-                        print("Goto from", state, "to", goto)
+                        print("Goto from", state, "to", goto, symbols)
                         self.__results__.append(("Goto", state, goto))
 
-                    elif actions[0][0] == "Accept":
+                    else:
                         print("Accept")
                         break
 
-                    else:
-                        print("Error not action")
-                        break
-
                 # Conflicts
-                else:
+                elif len(actions) > 1:
                     reduce = [x for x in actions if x[0] == "Reduce"]
                     shift = [x for x in actions if x[0] == "Shift"]
                     rp = self.__grammar__.rules.get(reduce[0][1])[2]
@@ -72,13 +68,13 @@ class Parser:
                         symbols = symbols[: len(symbols) - length]
                         symbols.append(rule[0])
                         self.__results__.append(("Reduce", state, reduce[0][1]))
-                        print("Reduce from", state, "to", reduce[0][1])
+                        print("Reduce from", state, "to", reduce[0][1], symbols)
 
                         state = int(stack[-1])
                         index = self.__grammar__.table[0].index(rule[0])
                         goto = str(self.__grammar__.table[state + 1][index])
                         stack.append(str(goto))
-                        print("Goto from", state, "to", goto)
+                        print("Goto from", state, "to", goto, symbols)
                         self.__results__.append(("Goto", state, goto))
 
                     # Shift
@@ -86,8 +82,13 @@ class Parser:
                         stack.append(str(shift[0][1]))
                         symbols.append(token.word)
                         position += 1
-                        print("Shift from", state, "to", shift[0][1])
+                        print("Shift from", state, "to", shift[0][1], symbols, stack)
                         self.__results__.append(("Shift", state, shift[0][1]))
+
+                # Not an action
+                else:
+                    print("Error not action")
+                    break
 
             # Error not word in terminals
             else:
@@ -131,6 +132,7 @@ class Parser:
         raw = str(self.__grammar__.table[state + 1][index]).split("/")
 
         for item in raw:
+            if not item: continue
             item = item.strip()
 
             if item.startswith("s"):
