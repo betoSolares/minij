@@ -112,7 +112,7 @@ class Grammar:
                 (56, ["ExprSubLevel3", "ExprSubLevel3 > ExprSubLevel4"]),
                 (57, ["ExprSubLevel3", "ExprSubLevel3 >= ExprSubLevel4"]),
                 (58, ["ExprSubLevel3", "ExprSubLevel4"]),
-                (59, ["ExprSubLevel4", "ExprSubLevel5 - ExprSubLevel6"]),
+                (59, ["ExprSubLevel4", "ExprSubLevel4 - ExprSubLevel5"]),
                 (60, ["ExprSubLevel4", "ExprSubLevel5"]),
                 (61, ["ExprSubLevel5", "ExprSubLevel5 / ExprSubLevel6"]),
                 (62, ["ExprSubLevel5", "ExprSubLevel5 % ExprSubLevel6"]),
