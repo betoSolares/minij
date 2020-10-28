@@ -46,9 +46,10 @@ class Parser:
                         goto = str(self.__grammar__.table[state + 1][index])
                         stack.append(str(goto))
                         print("Goto from", state, "to", goto)
-                        self.__results__.append(("Goto", state, actions[0][1]))
+                        self.__results__.append(("Goto", state, goto))
 
                     elif actions[0][0] == "Accept":
+                        print("Accept")
                         break
 
                     else:
@@ -57,12 +58,40 @@ class Parser:
 
                 # Conflicts
                 else:
-                    print("Error Conflicts")
-                    break
+                    reduce = [x for x in actions if x[0] == "Reduce"]
+                    shift = [x for x in actions if x[0] == "Shift"]
+                    rp = self.__grammar__.rules.get(reduce[0][1])[2]
+                    terminal = self.__get_equivalent__(token)
+                    tp = self.__grammar__.terminals.get(terminal)
+
+                    # Reduce
+                    if rp >= tp:
+                        rule = self.__grammar__.rules.get(int(reduce[0][1]))
+                        length = 0 if rule[1] == "''" else len(rule[1].split())
+                        stack = stack[: len(stack) - length]
+                        symbols = symbols[: len(symbols) - length]
+                        symbols.append(rule[0])
+                        self.__results__.append(("Reduce", state, reduce[0][1]))
+                        print("Reduce from", state, "to", reduce[0][1])
+
+                        state = int(stack[-1])
+                        index = self.__grammar__.table[0].index(rule[0])
+                        goto = str(self.__grammar__.table[state + 1][index])
+                        stack.append(str(goto))
+                        print("Goto from", state, "to", goto)
+                        self.__results__.append(("Goto", state, goto))
+
+                    # Shift
+                    else:
+                        stack.append(str(shift[0][1]))
+                        symbols.append(token.word)
+                        position += 1
+                        print("Shift from", state, "to", shift[0][1])
+                        self.__results__.append(("Shift", state, shift[0][1]))
 
             # Error not word in terminals
             else:
-                print("Error not terminal")
+                print("Error not terminal", token.word)
                 break
 
     # Get the equivalent terminal for the category of the token
@@ -102,8 +131,7 @@ class Parser:
         raw = str(self.__grammar__.table[state + 1][index]).split("/")
 
         for item in raw:
-            if not item:
-                continue
+            item = item.strip()
 
             if item.startswith("s"):
                 actions.append(("Shift", int(item[1:])))
