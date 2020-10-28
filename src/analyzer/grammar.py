@@ -61,11 +61,11 @@ class Grammar:
                 (18, ["Formals", "Type ident , Formals", 12]),
                 (19, ["Formals", "Type ident", 10]),
                 (20, ["Extends", "extends ident", 10]),
-                (21, ["Extends", "''", 0]),
+                (21, ["Extends", "''", 10]),
                 (22, ["Implements", "Implements ident ImplementsIdentPlus", 10]),
-                (23, ["Implements", "''", 0]),
+                (23, ["Implements", "''", 10]),
                 (24, ["ImplementsIdentPlus", ", ident ImplementsIdentPlus", 10]),
-                (25, ["ImplementsIdentPlus", "''", 0]),
+                (25, ["ImplementsIdentPlus", "''", 11]),
                 (26, ["Field", "DeclAdditional Field", 0]),
                 (27, ["Field", "''", 0]),
                 (
@@ -76,7 +76,7 @@ class Grammar:
                         11,
                     ],
                 ),
-                (29, ["Prototype", "''", 0]),
+                (29, ["Prototype", "''", 11]),
                 (
                     30,
                     [
@@ -86,7 +86,7 @@ class Grammar:
                     ],
                 ),
                 (31, ["VariableDeclStar", "Type ident ; VariableDeclStar", 11]),
-                (32, ["VariableDeclStar", "''", 0]),
+                (32, ["VariableDeclStar", "''", 11]),
                 (
                     33,
                     [
@@ -95,7 +95,7 @@ class Grammar:
                         11,
                     ],
                 ),
-                (34, ["ConstDeclStar", "''", 0]),
+                (34, ["ConstDeclStar", "''", 11]),
                 (35, ["StmtStar", "Stmt StmtStar", 0]),
                 (36, ["StmtStar", "''", 0]),
                 (37, ["Stmt", "Expr ;", 11]),
@@ -115,7 +115,7 @@ class Grammar:
                 ),
                 (45, ["Stmt", "StmtBlock", 0]),
                 (46, ["ElseStmt", "else Stmt", 14]),
-                (47, ["ElseStmt", "''", 0]),
+                (47, ["ElseStmt", "''", 14]),
                 (48, ["PrintStmtExpr", ", Expr PrintStmtExpr", 12]),
                 (49, ["PrintStmtExpr", "''", 0]),
                 (50, ["Expr", "ident Access = ExprSubLevel1", 1]),
@@ -146,7 +146,7 @@ class Grammar:
                 (75, ["ExprSubLevel8", "null", 10]),
                 (76, ["ExprSubLevel8", "ident Access", 10]),
                 (77, ["Access", ". ident Access", 10]),
-                (78, ["Access", "''", 0]),
+                (78, ["Access", "''", 10]),
             ]
         )
 
