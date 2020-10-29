@@ -62,10 +62,8 @@ class Parser:
 
                     # Solve issue for declaring variable of type class in func
                     if shift[0][1] == 10 and reduce[0][1] == 32 and state == 50:
-                        next1 = input_stream[position + 1].category
-                        next2 = input_stream[position + 2].word
-                        if next1 == "Identifier" and next2 == ";":
-                            tp = 10000
+                        nextone = input_stream[position + 1].category
+                        tp = 100 if nextone == "Identifier" else tp
 
                     # Reduce
                     if rp >= tp:
