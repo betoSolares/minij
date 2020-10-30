@@ -85,21 +85,19 @@ class Lexer:
         self.__analysis__ = []
         self.__has_errors__ = False
 
-    # Try to tokenize the text, true if has no errors
-    def try_tokenize(self, lines):
-        self.__tokenization__(lines)
-        return not self.__has_errors__
-
     # Get a list with all the errors
-    def get_errors(self):
+    @property
+    def errors(self):
         return [x for x in self.__analysis__ if x.category == "Error"]
 
     # Get a list with all the warnings
-    def get_warnings(self):
+    @property
+    def warnings(self):
         return [x for x in self.__analysis__ if x.category == "Warning"]
 
     # Get a list with all the tokens
-    def get_tokens(self):
+    @property
+    def tokens(self):
         return [
             x
             for x in self.__analysis__
@@ -107,8 +105,14 @@ class Lexer:
         ]
 
     # Get a list with all the errors and tokens
-    def get_all(self):
+    @property
+    def all(self):
         return self.__analysis__
+
+    # Try to tokenize the text, true if has no errors
+    def tokenize(self, lines):
+        self.__tokenization__(lines)
+        return not self.__has_errors__
 
     # Get all the words of the file and categorize them
     def __tokenization__(self, lines):
