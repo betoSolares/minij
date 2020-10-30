@@ -8,7 +8,6 @@ class Parser:
         self.__grammar__ = Grammar()
         self.__results__ = []
         self.__position__ = 0
-        self.__save__ = 0
         self.__stack__ = ["0"]
         self.__symbols__ = []
         self.__input__ = []
@@ -35,7 +34,6 @@ class Parser:
                         self.__reduce__(actions[0][1], state)
                         self.__goto__(actions[0][1], state)
                     else:
-                        print("Accept")
                         break
 
                 # Conflicts
@@ -64,15 +62,15 @@ class Parser:
 
                 # Not an action
                 else:
-                    # ERRORS
-                    self.__skip__(current, state)
-                    if self.__position__ > len(self.__input__):
+                    self.__error_recovery__(current, state)
+                    if self.__position__ >= len(self.__input__):
                         break
 
             # Error not word in terminals
             else:
-                print("Error not terminal", current.word)
-                break
+                self.__error_recovery__(current, state)
+                if self.__position__ >= len(self.__input__):
+                    break
 
     # Get a list with all the errors
     def get_errors(self):
@@ -100,6 +98,9 @@ class Parser:
             or token.category == "SingleOperator"
         ):
             return token.word
+
+        elif token.category == "Identifier":
+            return "ident"
 
         elif token.category == "Identifier":
             return "ident"
@@ -133,7 +134,6 @@ class Parser:
         self.__stack__.append(str(new_state))
         self.__symbols__.append(current.word)
         self.__position__ += 1
-        print("Shift from", state, "to", new_state, self.__symbols__)
         self.__results__.append(("Shift", state, new_state))
 
     # Reduce symbols to productions
@@ -144,7 +144,6 @@ class Parser:
         self.__symbols__ = self.__symbols__[: len(self.__symbols__) - length]
         self.__symbols__.append(rule[0])
         self.__results__.append(("Reduce", state, production))
-        print("Reduce from", state, "with", production, self.__symbols__)
 
     # Go to a different state after reduction
     def __goto__(self, production, state):
@@ -153,47 +152,36 @@ class Parser:
         index = self.__grammar__.table[0].index(rule[0])
         goto = str(self.__grammar__.table[state + 1][index])
         self.__stack__.append(str(goto))
-        print("Goto from", state, "to", goto, self.__symbols__)
         self.__results__.append(("Goto", state, goto))
 
-    # Skips errors so the parser can recover
-    def __skip__(self, current, state):
-        nonterminals = []
-        while True:
-            if state is not None and not nonterminals:
-                for cell in range(45, 75):
-                    goto = str(self.__grammar__.table[state + 1][cell])
+    # Throw away input tokens until a good one is found
+    def __error_recovery__(self, current, state):
+        index = self.__grammar__.table[0].index("Init")
+        header = self.__grammar__.table[0][:index]
+        expected = [header[x[0]] for x in self.__get_expected__(state)]
 
-                    if goto != "":
-                        nonterminals.append(str(self.__grammar__.table[0][cell]))
+        if current.word == "$" and current.category == "EOF":
+            equivalent = "EOF"
+        else:
+            equivalent = self.__get_equivalent__(current)
 
-                if not nonterminals:
-                    self.__stack__ = self.__stack__[: len(self.__stack__) - 1]
-                    state = int(self.__stack__[-1])
-            else:
-                break
+        self.__errors__.append([current, equivalent, expected])
 
-        self.__save__ = self.__position__
-        end_skip = 0
+        while self.__position__ < len(self.__input__):
+            actual = self.__input__[self.__position__]
+            terminal = self.__get_equivalent__(actual)
 
-        for nonterminal in nonterminals:
-            self.__position__ = self.__save__
-            current = self.__input__[self.__position__]
-            self.__errors__ = []
-            while True:
-                if current.word not in self.__grammar__.follows.get(nonterminal):
-                    self.__errors__.append(current)
-                    self.__position__ += 1
-                    current = self.__input__[self.__position__]
-                    if current.word == "$":
-                        break
-                else:
-                    state = int(self.__stack__[-1])
-                    index = self.__grammar__.table[0].index(nonterminal)
-                    goto = str(self.__grammar__.table[state + 1][index])
-                    self.__stack__.append(str(goto))
-                    end_skip = 1
+            if terminal in self.__grammar__.terminals:
+                index = header.index(terminal)
+                if self.__grammar__.table[state + 1][index] != "":
                     break
+                else:
+                    self.__position__ += 1
+            else:
+                self.__position__ += 1
 
-            if end_skip == 1:
-                break
+    # Get the expected actions for the state
+    def __get_expected__(self, state):
+        index = self.__grammar__.table[0].index("Init")
+        values = self.__grammar__.table[state + 1][:index]
+        return [(i, x) for i, x in enumerate(values) if x]
