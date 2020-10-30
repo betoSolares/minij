@@ -12,8 +12,18 @@ class Parser:
         self.__symbols__ = []
         self.__input__ = []
 
+    # Get a list with the errors
+    @property
+    def errors(self):
+        return self.__errors__
+
+    # Get the actions make by the parser
+    @property
+    def actions(self):
+        return self.__results__
+
     # Try analyze
-    def Analyze(self, tokens):
+    def analyze(self, tokens):
         last = tokens[-1]
         eof = Token("$", last.line, last.start, last.finish, "EOF")
         self.__input__ = tokens + [eof]
@@ -72,9 +82,7 @@ class Parser:
                 if self.__position__ >= len(self.__input__):
                     break
 
-    # Get a list with all the errors
-    def get_errors(self):
-        return self.__errors__
+        return True if len(self.__errors__) == 0 else False
 
     # Get the equivalent terminal for the category of the token
     def __get_equivalent__(self, token):
