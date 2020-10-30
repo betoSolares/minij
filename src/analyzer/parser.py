@@ -8,6 +8,7 @@ class Parser:
         self.__grammar__ = Grammar()
         self.__results__ = []
         self.__position__ = 0
+        self.__save__ = 0
         self.__stack__ = ["0"]
         self.__symbols__ = []
         self.__input__ = []
@@ -63,13 +64,19 @@ class Parser:
 
                 # Not an action
                 else:
-                    print("Error not action", self.__symbols__, current.word)
-                    break
+                    # ERRORS
+                    self.__skip__(current, state)
+                    if self.__position__ > len(self.__input__):
+                        break
 
             # Error not word in terminals
             else:
                 print("Error not terminal", current.word)
                 break
+
+    # Get a list with all the errors
+    def get_errors(self):
+        return self.__errors__
 
     # Get the equivalent terminal for the category of the token
     def __get_equivalent__(self, token):
@@ -148,3 +155,45 @@ class Parser:
         self.__stack__.append(str(goto))
         print("Goto from", state, "to", goto, self.__symbols__)
         self.__results__.append(("Goto", state, goto))
+
+    # Skips errors so the parser can recover
+    def __skip__(self, current, state):
+        nonterminals = []
+        while True:
+            if state is not None and not nonterminals:
+                for cell in range(45,75):
+                    goto = str(self.__grammar__.table[state + 1][cell])
+
+                    if goto != "":
+                        nonterminals.append(str(self.__grammar__.table[0][cell]))
+
+                if not nonterminals:
+                    self.__stack__ = self.__stack__[: len(self.__stack__) - 1]
+                    state = int(self.__stack__[-1])
+            else:
+                break
+
+        self.__save__ = self.__position__
+        end_skip = 0
+
+        for nonterminal in nonterminals:
+            self.__position__ = self.__save__
+            current = self.__input__[self.__position__]
+            self.__errors__ = []
+            while True:
+                if current.word not in self.__grammar__.follows.get(nonterminal):
+                    self.__errors__.append(current)
+                    self.__position__ += 1
+                    current = self.__input__[self.__position__]
+                    if current.word == "$":
+                        break
+                else:
+                    state = int(self.__stack__[-1])
+                    index = self.__grammar__.table[0].index(nonterminal)
+                    goto = str(self.__grammar__.table[state + 1][index])
+                    self.__stack__.append(str(goto))
+                    end_skip = 1
+                    break
+
+            if end_skip == 1:
+                break
