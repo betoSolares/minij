@@ -161,7 +161,7 @@ class Parser:
         nonterminals = []
         while True:
             if state is not None and not nonterminals:
-                for cell in range(45,75):
+                for cell in range(45, 75):
                     goto = str(self.__grammar__.table[state + 1][cell])
 
                     if goto != "":
