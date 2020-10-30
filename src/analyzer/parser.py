@@ -7,47 +7,32 @@ class Parser:
         self.__errors__ = []
         self.__grammar__ = Grammar()
         self.__results__ = []
+        self.__position__ = 0
+        self.__stack__ = ["0"]
+        self.__symbols__ = []
+        self.__input__ = []
 
     # Try analyze
     def Analyze(self, tokens):
-        input_stream = tokens + [Token("$", "-1", "-1", "-1", "EndInputStream")]
-        stack = ["0"]
-        symbols = []
-        position = 0
+        last = tokens[-1]
+        eof = Token("$", last.line, last.start, last.finish, "EOF")
+        self.__input__ = tokens + [eof]
 
         while True:
-            state = int(stack[-1])
-            token = input_stream[position]
+            state = int(self.__stack__[-1])
+            current = self.__input__[self.__position__]
 
             # Check if the word is a terminal
-            if self.__get_equivalent__(token) in self.__grammar__.table[0]:
-                actions = self.__get_action__(token, state)
+            if self.__get_equivalent__(current) in self.__grammar__.table[0]:
+                actions = self.__get_action__(current, state)
 
                 # Actions
                 if len(actions) == 1:
                     if actions[0][0] == "Shift":
-                        stack.append(str(actions[0][1]))
-                        symbols.append(token.word)
-                        position += 1
-                        print("Shift from", state, "to", actions[0][1], symbols)
-                        self.__results__.append(("Shift", state, actions[0][1]))
-
+                        self.__shift__(actions[0][1], current, state)
                     elif actions[0][0] == "Reduce":
-                        rule = self.__grammar__.rules.get(int(actions[0][1]))
-                        length = 0 if rule[1] == "''" else len(rule[1].split())
-                        stack = stack[: len(stack) - length]
-                        symbols = symbols[: len(symbols) - length]
-                        symbols.append(rule[0])
-                        self.__results__.append(("Reduce", state, actions[0][1]))
-                        print("Reduce from", state, "to", actions[0][1], symbols)
-
-                        state = int(stack[-1])
-                        index = self.__grammar__.table[0].index(rule[0])
-                        goto = str(self.__grammar__.table[state + 1][index])
-                        stack.append(str(goto))
-                        print("Goto from", state, "to", goto, symbols)
-                        self.__results__.append(("Goto", state, goto))
-
+                        self.__reduce__(actions[0][1], state)
+                        self.__goto__(actions[0][1], state)
                     else:
                         print("Accept")
                         break
@@ -57,54 +42,28 @@ class Parser:
                     reduce = [x for x in actions if x[0] == "Reduce"]
                     shift = [x for x in actions if x[0] == "Shift"]
                     rp = self.__grammar__.rules.get(reduce[0][1])[2]
-                    terminal = self.__get_equivalent__(token)
+                    terminal = self.__get_equivalent__(current)
                     tp = self.__grammar__.terminals.get(terminal)
 
                     # Solve issue for declaring variable of type class in func
                     if shift[0][1] == 10 and reduce[0][1] == 32 and state == 50:
-                        nextone = input_stream[position + 1].category
+                        nextone = self.__input__[self.__position__ + 1].category
                         tp = 100 if nextone == "Identifier" else tp
 
-                    # Reduce
                     if rp >= tp:
-                        rule = self.__grammar__.rules.get(int(reduce[0][1]))
-                        length = 0 if rule[1] == "''" else len(rule[1].split())
-                        stack = stack[: len(stack) - length]
-                        symbols = symbols[: len(symbols) - length]
-                        symbols.append(rule[0])
-                        self.__results__.append(("Reduce", state, reduce[0][1]))
-                        print("Reduce from", state, "to", reduce[0][1], symbols)
-
-                        state = int(stack[-1])
-                        index = self.__grammar__.table[0].index(rule[0])
-                        goto = str(self.__grammar__.table[state + 1][index])
-                        stack.append(str(goto))
-                        print("Goto from", state, "to", goto, symbols)
-                        self.__results__.append(("Goto", state, goto))
-
-                    # Shift
+                        self.__reduce__(reduce[0][1], state)
+                        self.__goto__(reduce[0][1], state)
                     else:
-                        stack.append(str(shift[0][1]))
-                        symbols.append(token.word)
-                        position += 1
-                        print(
-                            "Shift from",
-                            state,
-                            "to",
-                            shift[0][1],
-                            symbols,
-                            stack,
-                        )
-                        self.__results__.append(("Shift", state, shift[0][1]))
+                        self.__shift__(shift[0][1], current, state)
 
                 # Not an action
                 else:
-                    print("Error not action", symbols, token.word)
+                    print("Error not action", self.__symbols__, current.word)
                     break
 
             # Error not word in terminals
             else:
-                print("Error not terminal", token.word)
+                print("Error not terminal", current.word)
                 break
 
     # Get the equivalent terminal for the category of the token
@@ -156,3 +115,31 @@ class Parser:
                 actions.append(("Accept", -1))
 
         return actions
+
+    # Shift from one state to another
+    def __shift__(self, new_state, current, state):
+        self.__stack__.append(str(new_state))
+        self.__symbols__.append(current.word)
+        self.__position__ += 1
+        print("Shift from", state, "to", new_state, self.__symbols__)
+        self.__results__.append(("Shift", state, new_state))
+
+    # Reduce symbols to productions
+    def __reduce__(self, production, state):
+        rule = self.__grammar__.rules.get(int(production))
+        length = 0 if rule[1] == "''" else len(rule[1].split())
+        self.__stack__ = self.__stack__[: len(self.__stack__) - length]
+        self.__symbols__ = self.__symbols__[: len(self.__symbols__) - length]
+        self.__symbols__.append(rule[0])
+        self.__results__.append(("Reduce", state, production))
+        print("Reduce from", state, "with", production, self.__symbols__)
+
+    # Go to a different state after reduction
+    def __goto__(self, production, state):
+        rule = self.__grammar__.rules.get(int(production))
+        state = int(self.__stack__[-1])
+        index = self.__grammar__.table[0].index(rule[0])
+        goto = str(self.__grammar__.table[state + 1][index])
+        self.__stack__.append(str(goto))
+        print("Goto from", state, "to", goto, self.__symbols__)
+        self.__results__.append(("Goto", state, goto))
