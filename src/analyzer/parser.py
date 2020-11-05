@@ -46,30 +46,6 @@ class Parser:
                     else:
                         break
 
-                # Conflicts
-                elif len(actions) > 1:
-                    reduce = [x for x in actions if x[0] == "Reduce"]
-                    shift = [x for x in actions if x[0] == "Shift"]
-                    rp = self.__grammar__.rules.get(reduce[0][1])[2]
-                    terminal = self.__get_equivalent__(current)
-                    tp = self.__grammar__.terminals.get(terminal)
-
-                    # Declaring variable of type ident in func
-                    if shift[0][1] == 10 and reduce[0][1] == 32 and state == 50:
-                        nextone = self.__input__[self.__position__ + 1].category
-                        tp = 100 if nextone == "Identifier" else tp
-
-                    # Function declaration out of class
-                    elif shift[0][1] == 19 and reduce[0][1] == 16 and state == 6:
-                        nextone = self.__input__[self.__position__ + 1].word
-                        rp = 100 if nextone == "(" else rp
-
-                    if rp >= tp:
-                        self.__reduce__(reduce[0][1], state)
-                        self.__goto__(reduce[0][1], state)
-                    else:
-                        self.__shift__(shift[0][1], current, state)
-
                 # Not an action
                 else:
                     self.__error_recovery__(current, state)
