@@ -9,7 +9,6 @@ class Grammar:
     def __init__(self):
         self.__rules__ = self.__set_rules__()
         self.__terminals__ = self.__set_terminals__()
-        self.__nonterminals__ = self.__set_nonterminals__()
         self.__table__ = self.__set_table__()
 
     @property
@@ -19,10 +18,6 @@ class Grammar:
     @property
     def terminals(self):
         return self.__terminals__
-
-    @property
-    def nonterminals(self):
-        return self.__nonterminals__
 
     @property
     def table(self):
@@ -187,51 +182,6 @@ class Grammar:
             "booleanConstant",
             "stringConstant",
             "null",
-        ]
-
-    # List of non terminals in the grammar
-    def __set_nonterminals__(self):
-        return [
-            "Init",
-            "Program",
-            "Decl",
-            "VariableDecl",
-            "Variable",
-            "ConstDecl",
-            "ConstType",
-            "Type",
-            "TypeArray",
-            "FunctionDecl",
-            "Formals",
-            "ClassDecl",
-            "Extends",
-            "Implements",
-            "ImplementsIdentPlus",
-            "FieldStar",
-            "Field",
-            "InterfaceDecl",
-            "PrototypeStar",
-            "Prototype",
-            "StmtBlock",
-            "StmtBlockDeclStar",
-            "StmtBlockDecl",
-            "Stmt",
-            "OpenStmt",
-            "ClosedStmt",
-            "ReturnStmt",
-            "BreakStmt",
-            "PrintStmt",
-            "ExprPlus",
-            "Expr",
-            "ExprSubLevel1",
-            "ExprSubLevel2",
-            "ExprSubLevel3",
-            "ExprSubLevel4",
-            "ExprSubLevel5",
-            "ExprSubLevel6",
-            "ExprSubLevel7",
-            "ExprSubLevel8",
-            "Access",
         ]
 
     # The parsing table
