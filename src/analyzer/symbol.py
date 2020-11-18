@@ -1,5 +1,5 @@
 class Symbol:
-    def __init__(self, type, category, value=None, scope):
+    def __init__(self, type, category, value=None, scope=None):
         self.__type__ = type
         self.__category__ = category
         self.__value__ = value
