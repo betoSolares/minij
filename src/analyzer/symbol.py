@@ -16,11 +16,11 @@ class Symbol:
     def category(self):
         return self.__category__
 
-    @type.setter
+    @category.setter
     def category(self, category):
         self.__category__ = category
 
-    @value
+    @property
     def value(self):
         return self.__value__
 
