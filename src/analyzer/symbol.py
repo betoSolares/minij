@@ -1,8 +1,9 @@
 class Symbol:
-    def __init__(self, type, category, value=None):
+    def __init__(self, type, category, value=None, scope):
         self.__type__ = type
         self.__category__ = category
         self.__value__ = value
+        self.__scope__ = scope
 
     @property
     def type(self):
@@ -27,3 +28,11 @@ class Symbol:
     @value.setter
     def value(self, value):
         self.__value__ = value
+
+    @property
+    def scope(self):
+        return self.__scope__
+
+    @scope.setter
+    def scope(self, scope):
+        self.__scope__ = scope
