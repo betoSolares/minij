@@ -1,5 +1,5 @@
-from .token import Token
 from .symbol import Symbol
+from .token import Token
 
 
 class Semantic:
@@ -9,13 +9,12 @@ class Semantic:
         self.__position__ = 0
         self.__input__ = []
 
-
     # Get a list with the errors
     @property
     def errors(self):
         return self.__errors__
 
-    def analyze(self,tokens):
+    def analyze(self, tokens):
         self.__input__ = tokens
         pass
 
@@ -42,7 +41,7 @@ class Semantic:
         else:
             next = "Variable"
 
-        self.__symbols__[token.word] = Symbol(previous,next)
+        self.__symbols__[token.word] = Symbol(previous, next)
 
         return
 
