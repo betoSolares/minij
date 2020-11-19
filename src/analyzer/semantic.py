@@ -39,8 +39,6 @@ class Semantic:
             print(self.__position__)
 
             lookahead = self.__input__[self.__position__]
-            if lookahead is None:
-                break
 
             if current.category == "Identifier":
                 print(
@@ -73,7 +71,7 @@ class Semantic:
     # Add new symbol to symbols table
     def __add_symbol__(self, token):
 
-        before_previous = self.__input__[self.__position__ -3]
+        before_previous = self.__input__[self.__position__ - 3]
         previous = self.__input__[self.__position__ - 2]
         next = self.__input__[self.__position__]
         print(
@@ -88,6 +86,8 @@ class Semantic:
         )
         type = ""
         category = ""
+        value = ""
+        symbol = token.word
 
         if before_previous.word == "static":
             type = previous.word
@@ -107,11 +107,29 @@ class Semantic:
             type = previous.word
             category = "function"
 
+        elif next.word == ".":
+
+            while True:
+                symbol += next.word
+                self.__position__ += 1
+                next = self.__input__[self.__position__]
+                if next.word == "=":
+                    break
+
+
+            self.__position__ += 1
+            value = self.__input__[self.__position__]
+            type = symbol
+            category = "object"
+
+            self.__symbols__[symbol] = Symbol(type, category, value.word)
+            return
+
         else:
             type = previous.word
             category = "variable"
 
-        self.__symbols__[token.word] = Symbol(type, category)
+        self.__symbols__[symbol] = Symbol(type, category)
 
         return
 
