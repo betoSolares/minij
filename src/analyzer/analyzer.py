@@ -108,8 +108,8 @@ class Analyzer:
     def __semantic__errors__(self):
         for error in self.__semantic__.errors:
             line = str(error[0].line)
-            obtained = error[1]
-            expected = " or ".join(error[2])
+            reason = error[1]
+            obtained = error[2]
 
             if error[0].finish is None:
                 col = " column " + str(error[0].start)
@@ -125,9 +125,8 @@ class Analyzer:
                 "*** ERROR on line "
                 + line
                 + col
-                + " *** got "
+                + reason
                 + obtained
-                + " expected "
-                + expected
+                + "***"
             )
             self.__errors__.append(e)
