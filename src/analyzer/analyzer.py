@@ -1,5 +1,6 @@
 from .lexer import Lexer
 from .parser import Parser
+from .semantic import Semantic
 
 
 class Analyzer:
@@ -7,6 +8,7 @@ class Analyzer:
         self.__errors__ = []
         self.__lexer__ = Lexer()
         self.__parser__ = Parser()
+        self.__semantic__ = Semantic()
         self.__text__ = text
         self.__warnings__ = []
 
@@ -23,8 +25,13 @@ class Analyzer:
     def try_analyze(self):
         if self.__lexer__.tokenize(self.__text__):
             if self.__parser__.analyze(self.__lexer__.tokens):
-                self.__lexer__warnings__()
-                return True
+                if self.__semantic__.analyze(self.__lexer__.tokens):
+                    self.__lexer__warnings__()
+                    return True
+                else:
+                    self.__lexer__.warnings()
+                    self.__semantic__errors__()
+                    return False
             else:
                 self.__lexer__warnings__()
                 self.__parser__errors__()
@@ -72,6 +79,34 @@ class Analyzer:
     # Convert the parser errors
     def __parser__errors__(self):
         for error in self.__parser__.errors:
+            line = str(error[0].line)
+            obtained = error[1]
+            expected = " or ".join(error[2])
+
+            if error[0].finish is None:
+                col = " column " + str(error[0].start)
+            else:
+                col = (
+                    " columns "
+                    + str(error[0].start)
+                    + " to "
+                    + str(error[0].finish)
+                )
+
+            e = (
+                "*** ERROR on line "
+                + line
+                + col
+                + " *** got "
+                + obtained
+                + " expected "
+                + expected
+            )
+            self.__errors__.append(e)
+
+    # Convert the parser errors
+    def __semantic__errors__(self):
+        for error in self.__semantic__.errors:
             line = str(error[0].line)
             obtained = error[1]
             expected = " or ".join(error[2])
