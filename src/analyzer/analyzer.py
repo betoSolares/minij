@@ -121,12 +121,5 @@ class Analyzer:
                     + str(error[0].finish)
                 )
 
-            e = (
-                "*** ERROR on line "
-                + line
-                + col
-                + reason
-                + obtained
-                + "***"
-            )
+            e = "*** ERROR on line " + line + col + reason + obtained + "***"
             self.__errors__.append(e)
