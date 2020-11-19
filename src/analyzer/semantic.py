@@ -65,7 +65,9 @@ class Semantic:
             else:
                 continue
 
-        import pdb; pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         return True if len(self.__errors__) == 0 else False
 
     # Add new symbol to symbols table
@@ -115,7 +117,6 @@ class Semantic:
                 next = self.__input__[self.__position__]
                 if next.word == "=":
                     break
-
 
             self.__position__ += 1
             value = self.__input__[self.__position__]
