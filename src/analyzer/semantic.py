@@ -122,6 +122,7 @@ class Semantic:
         lexeme = token.word
         extends = None
         implements = None
+        params = None
 
         if before_previous.word == "static":
             type = previous.word
@@ -168,7 +169,19 @@ class Semantic:
             category = "function"
             self.__loking_func__ = True
             self.__scope__.append(lexeme)
+
             # Get params
+            params = ""
+            helper = self.__position__
+
+            print(next.word)
+
+            while next.word != ")":
+                helper += 1
+                next = self.__input__[helper]
+                params += next.word
+
+            params = params[:len(params) - 1]
 
         elif next.word == ".":
 
@@ -184,9 +197,9 @@ class Semantic:
             type = lexeme
             category = "object"
 
-            symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements)
+            symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements, params)
             self.__symbols__.append(symbol)
-            print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements)
+            print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
             return
 
         else:
@@ -197,9 +210,9 @@ class Semantic:
             type = previous.word
             category = "variable"
 
-        symbol = Symbol(lexeme, type, category, value, scope, extends, implements)
+        symbol = Symbol(lexeme, type, category, value, scope, extends, implements, params)
         self.__symbols__.append(symbol)
-        print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements)
+        print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
 
         return
 
