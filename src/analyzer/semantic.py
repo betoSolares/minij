@@ -5,9 +5,10 @@ from .token import Token
 class Semantic:
     def __init__(self):
         self.__errors__ = []
-        self.__symbols__ = dict()
+        self.__symbols__ = []
         self.__position__ = 0
         self.__input__ = []
+        self.__scope__ = ["Global"]
 
     # Get a list with the errors
     @property
@@ -16,44 +17,41 @@ class Semantic:
 
     # Try analyze
     def analyze(self, tokens):
-        # import pdb
-
-        # pdb.set_trace()
         self.__input__ = tokens
 
         while True:
-
             current = self.__input__[self.__position__]
-            print(
-                "*** Current word:",
-                current.word,
-                "Current category:",
-                current.category,
-                "***",
-            )
+            #  print(
+            #      "*** Current word:",
+            #      current.word,
+            #      "Current category:",
+            #      current.category,
+            #      "***",
+            #  )
 
             self.__position__ += 1
             if self.__position__ >= len(self.__input__):
                 break
 
-            print(self.__position__)
+            #  print(self.__position__)
 
-            lookahead = self.__input__[self.__position__]
 
             if current.category == "Identifier":
-                print(
-                    "*** Lookahead word:",
-                    lookahead.word,
-                    "Lookahead category:",
-                    lookahead.category,
-                    "***",
-                )
+                lookahead = self.__input__[self.__position__]
+                #  print(
+                #      "*** Lookahead word:",
+                #      lookahead.word,
+                #      "Lookahead category:",
+                #      lookahead.category,
+                #      "***",
+                #  )
 
                 if lookahead.category == "Identifier":
                     continue
 
-                if self.__get_symbol__(current) is None:
+                if self.__get_symbol__(current.word, ",".join(self.__scope__)) is None:
                     if lookahead.word == "=":
+                        # Check for declared in parent scope
                         reason = "Undeclared identifier"
                         self.__errors__.append([current, reason, current.word])
 
@@ -61,35 +59,38 @@ class Semantic:
                         self.__add_symbol__(current)
 
                 else:
-                    self.__update_symbol__(current)
+                    self.__update_symbol__(current, ",".join(self.__scope__))
             else:
+                # Check for escope ending
                 continue
 
-        import pdb
+#        import pdb
 
-        pdb.set_trace()
+#        pdb.set_trace()
         return True if len(self.__errors__) == 0 else False
 
     # Add new symbol to symbols table
     def __add_symbol__(self, token):
-
         before_previous = self.__input__[self.__position__ - 3]
         previous = self.__input__[self.__position__ - 2]
         next = self.__input__[self.__position__]
-        print(
-            "*** Previous word:",
-            previous.word,
-            "Previous category:",
-            previous.category,
-            "***",
-        )
-        print(
-            "*** Next word:", next.word, "Next category:", next.category, "***"
-        )
+
+        #  print(
+        #      "*** Previous word:",
+        #      previous.word,
+        #      "Previous category:",
+        #      previous.category,
+        #      "***",
+        #  )
+        #  print(
+        #      "*** Next word:", next.word, "Next category:", next.category, "***"
+        #  )
+
         type = ""
         category = ""
         value = ""
-        symbol = token.word
+        scope = ",".join(self.__scope__)
+        lexeme = token.word
 
         if before_previous.word == "static":
             type = previous.word
@@ -97,6 +98,8 @@ class Semantic:
 
         elif previous.word == "class":
             type = category = "class"
+            self.__scope__.append(lexeme)
+            # Get extends and implements
 
         elif previous.word == "interface":
             type = category = "interface"
@@ -108,11 +111,13 @@ class Semantic:
         elif next.word == "(":
             type = previous.word
             category = "function"
+            self.__scope__.append(lexeme)
+            # Get params
 
         elif next.word == ".":
 
             while True:
-                symbol += next.word
+                lexeme += next.word
                 self.__position__ += 1
                 next = self.__input__[self.__position__]
                 if next.word == "=":
@@ -120,26 +125,41 @@ class Semantic:
 
             self.__position__ += 1
             value = self.__input__[self.__position__]
-            type = symbol
+            type = lexeme
             category = "object"
 
-            self.__symbols__[symbol] = Symbol(type, category, value.word)
+            symbol = Symbol(lexeme, type, category, value.word, scope)
+            self.__symbols__.append(symbol)
+            print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope)
             return
 
         else:
+
+            if previous.word == "(":
+                return
+
             type = previous.word
             category = "variable"
 
-        self.__symbols__[symbol] = Symbol(type, category)
+        symbol = Symbol(lexeme, type, category, value, scope)
+        self.__symbols__.append(symbol)
+        print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope)
 
         return
 
     # Return existing symbol
-    def __get_symbol__(self, symbol):
-        return self.__symbols__.get(symbol.word, None)
+    def __get_symbol__(self, symbol, scope):
+        value = None
+
+        for element in self.__symbols__:
+            if element.lexeme == symbol and element.scope == scope:
+                value = element
+                break
+
+        return value
 
     # Update existing symbol
-    def __update_symbol__(self, symbol):
+    def __update_symbol__(self, symbol, scope):
         next = self.__input__[self.__position__]
         value = ""
 
@@ -158,8 +178,14 @@ class Semantic:
                 value += next.word
 
             # import pdb; pdb.set_trace()
-            self.__symbols__[symbol.word].value = value
+            for element in self.__symbols__:
+                if element.lexeme == symbol.word and element.scope == scope:
+                    element.value = value
+                    print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
+                    break
+
             return True
+
         else:
             # Class, function or interface already declared
             # add error

@@ -29,7 +29,7 @@ class Analyzer:
                     self.__lexer__warnings__()
                     return True
                 else:
-                    self.__lexer__.warnings()
+                    self.__lexer__warnings__()
                     self.__semantic__errors__()
                     return False
             else:
@@ -121,5 +121,5 @@ class Analyzer:
                     + str(error[0].finish)
                 )
 
-            e = "*** ERROR on line " + line + col + reason + obtained + "***"
+            e = "*** ERROR on line " + line + col + " *** "+ reason + " " + obtained
             self.__errors__.append(e)

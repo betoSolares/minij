@@ -1,9 +1,18 @@
 class Symbol:
-    def __init__(self, type, category, value=None, scope=None):
+    def __init__(self, lexeme, type, category, value, scope):
+        self.__lexeme__ = lexeme
         self.__type__ = type
         self.__category__ = category
         self.__value__ = value
         self.__scope__ = scope
+
+    @property
+    def lexeme(self):
+        return self.__lexeme__
+
+    @lexeme.setter
+    def lexeme(self, lexeme):
+        self.__lexeme__ = lexeme
 
     @property
     def type(self):
