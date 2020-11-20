@@ -1,5 +1,6 @@
 from .symbol import Symbol
 from .token import Token
+import sys
 
 
 class Semantic:
@@ -116,9 +117,11 @@ class Semantic:
 
         type = ""
         category = ""
-        value = ""
+        value = None
         scope = ",".join(self.__scope__)
         lexeme = token.word
+        extends = None
+        implements = None
 
         if before_previous.word == "static":
             type = previous.word
@@ -132,7 +135,26 @@ class Semantic:
             type = category = "class"
             self.__scope__.append(lexeme)
             self.__loking_class__ = True
+
             # Get extends and implements
+            if next.word != "{":
+
+                if next.word == "extends":
+                    self.__position__ += 1
+                    next = self.__input__[self.__position__]
+                    extends = next.word
+                    self.__position__ += 1
+                    next = self.__input__[self.__position__]
+
+                    if next.word == "implements":
+                        implements = ""
+
+                        while next.word != "{":
+                            self.__position__ += 1
+                            next = self.__input__[self.__position__]
+                            implements += next.word
+
+                        implements = implements[:len(implements) - 1]
 
         elif previous.word == "interface":
             type = category = "interface"
@@ -162,9 +184,9 @@ class Semantic:
             type = lexeme
             category = "object"
 
-            symbol = Symbol(lexeme, type, category, value.word, scope)
+            symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements)
             self.__symbols__.append(symbol)
-            print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope)
+            print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements)
             return
 
         else:
@@ -175,9 +197,9 @@ class Semantic:
             type = previous.word
             category = "variable"
 
-        symbol = Symbol(lexeme, type, category, value, scope)
+        symbol = Symbol(lexeme, type, category, value, scope, extends, implements)
         self.__symbols__.append(symbol)
-        print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope)
+        print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements)
 
         return
 
