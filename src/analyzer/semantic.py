@@ -214,7 +214,7 @@ class Semantic:
 
             # Function call
             if previous.word == ".":
-                type = lexeme # Get actual type
+                type = self.__get_actual_type__(before_previous.word, token.word)
                 category = "function call"
 
                 # Get params
@@ -453,3 +453,28 @@ class Semantic:
             reason = "Accesing to undeclared object"
             self.__errors__.append([current, reason, current.word])
             return False
+
+    def __get_actual_type__(self, previous, current):
+        value = None
+
+        for element in self.__symbols__:
+            if element.lexeme == previous:
+                value = element
+                break
+
+        if value is not None:
+            method_found = value.scope.split(",")[-1]
+            scope_found = value.scope.split(",")[:-1]
+
+            type_found = None
+            for element in self.__symbols__:
+                if element.lexeme == method_found and element.scope == ",".join(scope_found):
+                    type_found = element
+                    break
+
+            if type_found is not None:
+                return type_found.type
+            else:
+                return None
+        else:
+            return None
