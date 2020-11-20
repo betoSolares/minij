@@ -45,12 +45,18 @@ class Semantic:
 
                     elif lookahead.word == ".":
                         # Check if declared in parent scope
-                        reason = "Undeclared identifier"
-                        self.__errors__.append([current, reason, current.word])
+                        #declbefore = False
+                        if declbefore:
+                            while lookahead.word != ")":
+                                self.__position__ += 1
+                                lookahead = self.__input__[self.__position__]
+                        else:
+                            reason = "Undeclared identifier"
+                            self.__errors__.append([current, reason, current.word])
 
-                        while lookahead.word != ")":
-                            self.__position__ += 1
-                            lookahead = self.__input__[self.__position__]
+                            while lookahead.word != ";":
+                                self.__position__ += 1
+                                lookahead = self.__input__[self.__position__]
 
                     else:
                         # Check if declared in parent scope
@@ -58,7 +64,7 @@ class Semantic:
 
                 else:
 
-                    # Function invoke
+                    # Function invoke or accesing object
                     if lookahead.word == ".":
                         self.__position__ += 1
                         current = self.__input__[self.__position__]
@@ -94,9 +100,6 @@ class Semantic:
                 else:
                     continue
 
-#        import pdb
-
-#        pdb.set_trace()
         return True if len(self.__errors__) == 0 else False
 
     # Add new symbol to symbols table
@@ -104,17 +107,6 @@ class Semantic:
         before_previous = self.__input__[self.__position__ - 3]
         previous = self.__input__[self.__position__ - 2]
         next = self.__input__[self.__position__]
-
-        #  print(
-        #      "*** Previous word:",
-        #      previous.word,
-        #      "Previous category:",
-        #      previous.category,
-        #      "***",
-        #  )
-        #  print(
-        #      "*** Next word:", next.word, "Next category:", next.category, "***"
-        #  )
 
         type = ""
         category = ""
@@ -125,6 +117,7 @@ class Semantic:
         implements = None
         params = None
 
+        # Check if static variable
         if before_previous.word == "static":
             type = previous.word
             category = "static"
@@ -167,6 +160,7 @@ class Semantic:
 
         # Check if funtion declaration or function call
         elif next.word == "(":
+
             # Function call
             if previous.word == ".":
                 type = lexeme # Get actual type
@@ -224,11 +218,29 @@ class Semantic:
 
         else:
 
+            # Skip for return
             if previous.word == "(":
                 return
 
-            type = previous.word
-            category = "variable"
+            # Accesing object
+            elif previous.word == ".":
+
+                while True:
+                    if next.word == "=":
+                        break
+
+                    lexeme += next.word
+                    self.__position__ += 1
+                    next = self.__input__[self.__position__]
+
+                self.__position__ += 1
+                value = self.__input__[self.__position__].word
+                type = lexeme
+                category = "object"
+
+            else:
+                type = previous.word
+                category = "variable"
 
         symbol = Symbol(lexeme, type, category, value, scope, extends, implements, params)
         self.__symbols__.append(symbol)
