@@ -43,9 +43,22 @@ class Semantic:
 
                     # Check for assignement
                     if lookahead.word == "=":
-                        # Check for declared in parent scope
-                        reason = "Undeclared identifier"
-                        self.__errors__.append([current, reason, current.word])
+
+                        # Check if declared in parent scope
+                        declbefore = False
+
+                        if declbefore:
+                            # do something
+                            continue
+
+                        # Add error and skip following
+                        else:
+                            reason = "Assigning to undeclared variable"
+                            self.__errors__.append([current, reason, current.word])
+
+                            while lookahead.word != ";":
+                                self.__position__ += 1
+                                lookahead = self.__input__[self.__position__]
 
                     # Possible function call or accesing object
                     elif lookahead.word == ".":
@@ -55,11 +68,11 @@ class Semantic:
 
                         if declbefore:
                             # do something
-                            pass
+                            continue
 
                         # Add error and skip following
                         else:
-                            reason = "Undeclared identifier"
+                            reason = "Accessing to undeclared object"
                             self.__errors__.append([current, reason, current.word])
 
                             while lookahead.word != ";":
@@ -109,6 +122,19 @@ class Semantic:
                     elif self.__class_open__:
                         self.__class_open__ = False
                         self.__scope__.pop()
+
+                # Skip Statetements block (provitional)
+                elif current.word == "if" or current.word == "while" or current.word == "for":
+                    lookahead = current
+                    while lookahead.word != ")":
+                        lookahead = self.__input__[self.__position__]
+                        self.__position__ += 1
+
+                elif current.word == "return" or current.word == "System":
+                    lookahead = current
+                    while lookahead.word != ";":
+                        lookahead = self.__input__[self.__position__]
+                        self.__position__ += 1
 
                 # Not important character
                 else:
@@ -215,7 +241,7 @@ class Semantic:
 
                 params = params[:len(params) - 1]
 
-        # Check if accesing method
+        # Check if accesing object
         elif next.word == ".":
 
             while True:
@@ -236,33 +262,26 @@ class Semantic:
             print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
             return
 
-        # Any other
-        else:
+        # Check if accesing object
+        elif previous.word == ".":
 
-            # Skip for return
-            if previous.word == "(":
-                return
+            while True:
+                if next.word == "=":
+                    break
 
-            # Accesing object
-            elif previous.word == ".":
-
-                while True:
-                    if next.word == "=":
-                        break
-
-                    lexeme += next.word
-                    self.__position__ += 1
-                    next = self.__input__[self.__position__]
-
+                lexeme += next.word
                 self.__position__ += 1
-                value = self.__input__[self.__position__].word # Get actual value
-                type = lexeme
-                category = "object"
+                next = self.__input__[self.__position__]
 
-            # Simple variable declaration
-            else:
-                type = previous.word
-                category = "variable"
+            self.__position__ += 1
+            value = self.__input__[self.__position__].word # Get actual value
+            type = lexeme
+            category = "object"
+
+        # Simple variable declaration
+        else:
+            type = previous.word
+            category = "variable"
 
         symbol = Symbol(lexeme, type, category, value, scope, extends, implements, params)
         self.__symbols__.append(symbol)
@@ -285,25 +304,26 @@ class Semantic:
     def __update_symbol__(self, symbol, scope):
         next = self.__input__[self.__position__]
         value = ""
+        exists = False
 
         if next.word == "=":
 
             while True:
-                self.__position__ += 1
                 if next.word == ";":
                     break
 
+                self.__position__ += 1
                 next = self.__input__[self.__position__]
                 # value is being stored as string until ; is found
                 # should probably operate values before storing them
                 # would have to make sure the types of operands are
                 # compatible
-                value += next.word
+                value += next.word + " "
 
-            # import pdb; pdb.set_trace()
+            value = value[:len(value) - 1]
             for element in self.__symbols__:
                 if element.lexeme == symbol.word and element.scope == scope:
-                    element.value = value
+                    element.value = value.strip()
                     print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
                     break
 
