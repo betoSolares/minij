@@ -9,6 +9,11 @@ class Semantic:
         self.__position__ = 0
         self.__input__ = []
         self.__scope__ = ["Global"]
+        self.__loking_class__ = False
+        self.__loking_func__ = False
+        self.__class_open__ = False
+        self.__func_open__ = False
+        self.__skips__ = 0
 
     # Get a list with the errors
     @property
@@ -61,8 +66,31 @@ class Semantic:
                 else:
                     self.__update_symbol__(current, ",".join(self.__scope__))
             else:
-                # Check for escope ending
-                continue
+
+                # Check for scope starting
+                if current.word == "{":
+                    if self.__loking_class__:
+                        self.__class_open__ = True
+                        self.__loking_class__ = False
+                    elif self.__loking_func__:
+                        self.__func_open__ = True
+                        self.__loking_func__ = False
+                    else:
+                        self.__skips__ += 1
+
+                # Check for scope ending
+                elif current.word == "}":
+                    if self.__skips__ > 0:
+                        self.__skips__ -= 1
+                    elif self.__func_open__:
+                        self.__func_open__ = False
+                        self.__scope__.pop()
+                    elif self.__class_open__:
+                        self.__class_open__ = False
+                        self.__scope__.pop()
+
+                else:
+                    continue
 
 #        import pdb
 
@@ -99,6 +127,7 @@ class Semantic:
         elif previous.word == "class":
             type = category = "class"
             self.__scope__.append(lexeme)
+            self.__loking_class__ = True
             # Get extends and implements
 
         elif previous.word == "interface":
@@ -111,6 +140,7 @@ class Semantic:
         elif next.word == "(":
             type = previous.word
             category = "function"
+            self.__loking_func__ = True
             self.__scope__.append(lexeme)
             # Get params
 
