@@ -34,22 +34,30 @@ class Semantic:
             if current.category == "Identifier":
                 lookahead = self.__input__[self.__position__]
 
+                # If next one identifier skip, possible object
                 if lookahead.category == "Identifier":
                     continue
 
+                # Check if symbol exists
                 if self.__get_symbol__(current.word, ",".join(self.__scope__)) is None:
+
+                    # Check for assignement
                     if lookahead.word == "=":
                         # Check for declared in parent scope
                         reason = "Undeclared identifier"
                         self.__errors__.append([current, reason, current.word])
 
+                    # Possible function call or accesing object
                     elif lookahead.word == ".":
+
                         # Check if declared in parent scope
-                        #declbefore = False
+                        declbefore = False
+
                         if declbefore:
-                            while lookahead.word != ")":
-                                self.__position__ += 1
-                                lookahead = self.__input__[self.__position__]
+                            # do something
+                            pass
+
+                        # Add error and skip following
                         else:
                             reason = "Undeclared identifier"
                             self.__errors__.append([current, reason, current.word])
@@ -58,10 +66,12 @@ class Semantic:
                                 self.__position__ += 1
                                 lookahead = self.__input__[self.__position__]
 
+                    # Possible new declaration
                     else:
                         # Check if declared in parent scope
                         self.__add_symbol__(current)
 
+                # Symbol exists
                 else:
 
                     # Function invoke or accesing object
@@ -71,8 +81,11 @@ class Semantic:
                         self.__position__ += 1
                         self.__add_symbol__(current)
 
+                    # Update the symbol or error
+                    else:
+                        self.__update_symbol__(current, ",".join(self.__scope__))
 
-                    self.__update_symbol__(current, ",".join(self.__scope__))
+            # Not an identifier
             else:
 
                 # Check for scope starting
@@ -97,6 +110,7 @@ class Semantic:
                         self.__class_open__ = False
                         self.__scope__.pop()
 
+                # Not important character
                 else:
                     continue
 
@@ -122,10 +136,12 @@ class Semantic:
             type = previous.word
             category = "static"
 
+        # Check if array
         elif previous.word == "[]":
             type = "array of " + before_previous.word
             category = "variable"
 
+        # Check if class declaration
         elif previous.word == "class":
             type = category = "class"
             self.__scope__.append(lexeme)
@@ -151,9 +167,11 @@ class Semantic:
 
                         implements = implements[:len(implements) - 1]
 
+        # Check for interface declaration
         elif previous.word == "interface":
             type = category = "interface"
 
+        # Check for object declaration
         elif previous.category == "Identifier":
             type = previous.word
             category = "object"
@@ -197,17 +215,19 @@ class Semantic:
 
                 params = params[:len(params) - 1]
 
+        # Check if accesing method
         elif next.word == ".":
 
             while True:
-                lexeme += next.word
-                self.__position__ += 1
-                next = self.__input__[self.__position__]
                 if next.word == "=":
                     break
 
+                lexeme += next.word
+                self.__position__ += 1
+                next = self.__input__[self.__position__]
+
             self.__position__ += 1
-            value = self.__input__[self.__position__]
+            value = self.__input__[self.__position__].word # Get real value
             type = lexeme
             category = "object"
 
@@ -216,6 +236,7 @@ class Semantic:
             print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
             return
 
+        # Any other
         else:
 
             # Skip for return
@@ -234,10 +255,11 @@ class Semantic:
                     next = self.__input__[self.__position__]
 
                 self.__position__ += 1
-                value = self.__input__[self.__position__].word
+                value = self.__input__[self.__position__].word # Get actual value
                 type = lexeme
                 category = "object"
 
+            # Simple variable declaration
             else:
                 type = previous.word
                 category = "variable"
