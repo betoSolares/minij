@@ -27,30 +27,12 @@ class Semantic:
 
         while True:
             current = self.__input__[self.__position__]
-            #  print(
-            #      "*** Current word:",
-            #      current.word,
-            #      "Current category:",
-            #      current.category,
-            #      "***",
-            #  )
-
             self.__position__ += 1
             if self.__position__ >= len(self.__input__):
                 break
 
-            #  print(self.__position__)
-
-
             if current.category == "Identifier":
                 lookahead = self.__input__[self.__position__]
-                #  print(
-                #      "*** Lookahead word:",
-                #      lookahead.word,
-                #      "Lookahead category:",
-                #      lookahead.category,
-                #      "***",
-                #  )
 
                 if lookahead.category == "Identifier":
                     continue
@@ -61,10 +43,29 @@ class Semantic:
                         reason = "Undeclared identifier"
                         self.__errors__.append([current, reason, current.word])
 
+                    elif lookahead.word == ".":
+                        # Check if declared in parent scope
+                        reason = "Undeclared identifier"
+                        self.__errors__.append([current, reason, current.word])
+
+                        while lookahead.word != ")":
+                            self.__position__ += 1
+                            lookahead = self.__input__[self.__position__]
+
                     else:
+                        # Check if declared in parent scope
                         self.__add_symbol__(current)
 
                 else:
+
+                    # Function invoke
+                    if lookahead.word == ".":
+                        self.__position__ += 1
+                        current = self.__input__[self.__position__]
+                        self.__position__ += 1
+                        self.__add_symbol__(current)
+
+
                     self.__update_symbol__(current, ",".join(self.__scope__))
             else:
 
@@ -164,24 +165,43 @@ class Semantic:
             type = previous.word
             category = "object"
 
+        # Check if funtion declaration or function call
         elif next.word == "(":
-            type = previous.word
-            category = "function"
-            self.__loking_func__ = True
-            self.__scope__.append(lexeme)
+            # Function call
+            if previous.word == ".":
+                type = lexeme # Get actual type
+                category = "function call"
 
-            # Get params
-            params = ""
-            helper = self.__position__
+                # Get params
+                params = ""
+                helper = self.__position__
 
-            print(next.word)
+                while next.word != ")":
+                    helper += 1
+                    next = self.__input__[helper]
+                    params += next.word
 
-            while next.word != ")":
-                helper += 1
-                next = self.__input__[helper]
-                params += next.word
+                params = params[:len(params) - 1]
 
-            params = params[:len(params) - 1]
+                # Check params
+
+            # Function declaration
+            else:
+                type = previous.word
+                category = "function declaration"
+                self.__loking_func__ = True
+                self.__scope__.append(lexeme)
+
+                # Get params
+                params = ""
+                helper = self.__position__
+
+                while next.word != ")":
+                    helper += 1
+                    next = self.__input__[helper]
+                    params += next.word
+
+                params = params[:len(params) - 1]
 
         elif next.word == ".":
 
