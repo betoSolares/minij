@@ -1,5 +1,5 @@
 class Symbol:
-    def __init__(self, lexeme, type, category, value, scope, extends, implements):
+    def __init__(self, lexeme, type, category, value, scope, extends, implements, params):
         self.__lexeme__ = lexeme
         self.__type__ = type
         self.__category__ = category
@@ -7,6 +7,7 @@ class Symbol:
         self.__scope__ = scope
         self.__extends__ = extends
         self.__implements__ = implements
+        self.__params__ = params
 
     @property
     def lexeme(self):
@@ -63,3 +64,11 @@ class Symbol:
     @implements.setter
     def implements(self, implements):
         self.__implements__ = implements
+
+    @property
+    def params(self):
+        return self.__params__
+
+    @params.setter
+    def params(self, params):
+        self.__params__ = params
