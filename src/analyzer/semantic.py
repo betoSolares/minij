@@ -1,6 +1,5 @@
 from .symbol import Symbol
 from .token import Token
-import sys
 
 
 class Semantic:
@@ -44,18 +43,14 @@ class Semantic:
                     # Check for assignement
                     if lookahead.word == "=":
 
-                        # Check if declared in parent scope
-                        declbefore = False
+                        # Check if declared in any parent scope
+                        decl, scp = self.__declared_before__(current.word)
 
-                        if declbefore:
-                            # do something
-                            continue
-
-                        # Add error and skip following
+                        if decl:
+                            self.__update_symbol__(current, scp)
                         else:
                             reason = "Assigning to undeclared variable"
                             self.__errors__.append([current, reason, current.word])
-
                             while lookahead.word != ";":
                                 self.__position__ += 1
                                 lookahead = self.__input__[self.__position__]
@@ -304,7 +299,6 @@ class Semantic:
     def __update_symbol__(self, symbol, scope):
         next = self.__input__[self.__position__]
         value = ""
-        exists = False
 
         if next.word == "=":
 
@@ -330,6 +324,23 @@ class Semantic:
             return True
 
         else:
-            # Class, function or interface already declared
+            # Class, variable, function or interface already declared
             # add error
             return False
+
+    # Check if symbol was declared in any parent scope
+    def __declared_before__(self, lexeme):
+        helper = self.__scope__.copy()
+
+        while len(helper) > 0:
+            value = self.__get_symbol__(lexeme, ",".join(helper))
+
+            if value is None:
+                helper.pop()
+            else:
+                break
+
+        if value is None:
+            return False, None
+        else:
+            return True, value.scope
