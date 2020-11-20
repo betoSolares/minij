@@ -1,5 +1,6 @@
 from .symbol import Symbol
 from .token import Token
+import sys
 
 
 class Semantic:
@@ -58,18 +59,23 @@ class Semantic:
                     # Possible function call or accesing object
                     elif lookahead.word == ".":
 
-                        # Check if declared in parent scope
-                        declbefore = False
+                        # Check if declared in any parent scope
+                        decl, scp = self.__declared_before__(current.word)
 
-                        if declbefore:
-                            # do something
-                            continue
+                        if decl:
+                            self.__position__ += 1
+                            current = self.__input__[self.__position__]
+                            self.__position__ += 1
 
-                        # Add error and skip following
+                            if self.__special_object__(current, scp):
+                                self.__add_symbol__(current)
+                            else:
+                                while lookahead.word != ";":
+                                    self.__position__ += 1
+                                    lookahead = self.__input__[self.__position__]
                         else:
-                            reason = "Accessing to undeclared object"
+                            reason = "Assigning to undeclared object"
                             self.__errors__.append([current, reason, current.word])
-
                             while lookahead.word != ";":
                                 self.__position__ += 1
                                 lookahead = self.__input__[self.__position__]
@@ -87,7 +93,13 @@ class Semantic:
                         self.__position__ += 1
                         current = self.__input__[self.__position__]
                         self.__position__ += 1
-                        self.__add_symbol__(current)
+
+                        if self.__check_property__(current):
+                            self.__add_symbol__(current)
+                        else:
+                            while lookahead.word != ";":
+                                self.__position__ += 1
+                                lookahead = self.__input__[self.__position__]
 
                     # Update the symbol or error
                     else:
@@ -269,7 +281,7 @@ class Semantic:
                 next = self.__input__[self.__position__]
 
             self.__position__ += 1
-            value = self.__input__[self.__position__].word # Get actual value
+            value = self.__input__[self.__position__].word # Get real value
             type = lexeme
             category = "object"
 
@@ -344,3 +356,100 @@ class Semantic:
             return False, None
         else:
             return True, value.scope
+
+    # Check if an object is a function call or accesing property
+    def __special_object__(self, current, scp):
+        before_previous = self.__input__[self.__position__ - 3]
+        next = self.__input__[self.__position__]
+
+        value = None
+        for element in self.__symbols__:
+            if element.lexeme == before_previous.word and element.scope == scp:
+                value = element
+                break
+
+        if value is not None:
+            new_scope = value.scope
+
+            if next.word == "(":
+
+                method_found = None
+                for element in self.__symbols__:
+                    if element.lexeme == current.word and element.scope == new_scope:
+                        method_found = element
+                        break
+
+                if method_found is not None:
+                    return True
+                else:
+                    reason = "Calling to undeclared method"
+                    self.__errors__.append([current, reason, current.word])
+                    return False
+
+            else:
+                property_found = None
+                for element in self.__symbols__:
+                    if element.lexeme == current.word and element.scope == new_scope:
+                        property_found = element
+                        break
+
+                if property_found is not None:
+                    return True
+                else:
+                    reason = "Accesing to undeclared property"
+                    self.__errors__.append([current, reason, current.word])
+                    return False
+
+        else:
+            reason = "Accesing to undeclared object"
+            self.__errors__.append([current, reason, current.word])
+            return False
+
+
+    # Check if a property is defined in a class
+    def __check_property__(self, current):
+        before_previous = self.__input__[self.__position__ - 3]
+        next = self.__input__[self.__position__]
+
+        value = None
+        for element in self.__symbols__:
+            if element.lexeme == before_previous.word:
+                value = element
+                break
+
+        if value is not None:
+            class_found = value.type
+
+            if next.word == "(":
+
+                method_found = None
+                for element in self.__symbols__:
+                    if element.lexeme == current.word and element.scope == "Global," + class_found:
+                        method_found = element
+                        break
+
+                if method_found is not None:
+                    return True
+                else:
+                    reason = "Calling to undeclared method"
+                    self.__errors__.append([current, reason, current.word])
+                    return False
+
+            else:
+                property_found = None
+                for element in self.__symbols__:
+                    if element.lexeme == current.word and element.scope == "Global," + class_found:
+                        property_found = element
+                        break
+
+                if property_found is not None:
+                    return True
+                else:
+                    reason = "Accesing to undeclared property"
+                    self.__errors__.append([current, reason, current.word])
+                    return False
+
+        else:
+            reason = "Accesing to undeclared object"
+            self.__errors__.append([current, reason, current.word])
+            return False
