@@ -124,6 +124,10 @@ class Semantic:
             type = previous.word
             category = "static"
 
+        elif previous.word == "[]":
+            type = "array of " + before_previous.word
+            category = "variable"
+
         elif previous.word == "class":
             type = category = "class"
             self.__scope__.append(lexeme)
