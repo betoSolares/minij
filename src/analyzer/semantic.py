@@ -407,8 +407,25 @@ class Semantic:
             value = value[:len(value) - 2]
             for element in self.__symbols__:
                 if element.lexeme == symbol.word and element.scope == scope:
-                    element.value = value.strip()
-                    print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
+                    if len(value.strip().split(" ")) == 1:
+
+                        t = self.__get_category__(value.strip())
+
+                        if t is None:
+                            for element in self.__symbols__:
+                                if element.lexeme == value.strip():
+                                    t = element.type
+
+                        if t is not None:
+                            at = element.type
+                            if at != t:
+                                reason = "Types don't match, expected " + at + " and got"
+                                self.__errors__.append([symbol, reason, t])
+                                break
+                    else:
+                        element.value = value.strip()
+                        print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
+
                     break
 
             return True
