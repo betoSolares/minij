@@ -1,5 +1,4 @@
 import re
-import sys
 
 from .symbol import Symbol
 from .token import Token
