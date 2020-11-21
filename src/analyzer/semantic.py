@@ -329,6 +329,43 @@ class Semantic:
             value.strip()
             value = value[:len(value) - 2]
 
+            if value is not None and len(value.strip().split(" ")) == 1:
+
+                val = None
+                for element in self.__symbols__:
+                    if element.lexeme == lexeme:
+                        val = element
+                        break
+
+                if val is not None:
+                    at = val.type
+                    t = self.__get_category__(value.strip())
+
+
+                    if t is None:
+                        for element in self.__symbols__:
+                            if element.lexeme == value.strip():
+                                t = element.type
+                                value = element.value
+                                reference = element.lexeme
+
+                    if value is None:
+                        reason = "Assigning to undefined variable"
+                        self.__errors__.append([token, reason, reference])
+                        return
+
+                    if t is not None:
+                        at = element.type
+                        if at != t:
+                            reason = "Types don't match, expected " + at + " and got"
+                            self.__errors__.append([token, reason, t])
+                            return
+
+                else:
+                    reason = "Accesing to undeclared property"
+                    self.__errors__.append([token, reason, token.word])
+                    return
+
             symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements, params)
             self.__symbols__.append(symbol)
             print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
@@ -361,6 +398,43 @@ class Semantic:
             category = "access object"
             value.strip()
             value = value[:len(value) - 2]
+
+            if value is not None and len(value.strip().split(" ")) == 1:
+
+                val = None
+                for element in self.__symbols__:
+                    if element.lexeme == lexeme:
+                        val = element
+                        break
+
+                if val is not None:
+                    at = val.type
+                    t = self.__get_category__(value.strip())
+
+
+                    if t is None:
+                        for element in self.__symbols__:
+                            if element.lexeme == value.strip():
+                                t = element.type
+                                value = element.value
+                                reference = element.lexeme
+
+                    if value is None:
+                        reason = "Assigning to undefined variable"
+                        self.__errors__.append([token, reason, reference])
+                        return
+
+                    if t is not None:
+                        at = element.type
+                        if at != t:
+                            reason = "Types don't match, expected " + at + " and got"
+                            self.__errors__.append([token, reason, t])
+                            return
+
+                else:
+                    reason = "Accesing to undeclared property"
+                    self.__errors__.append([token, reason, token.word])
+                    return
 
         # Simple variable declaration
         else:
@@ -397,10 +471,6 @@ class Semantic:
 
                 self.__position__ += 1
                 next = self.__input__[self.__position__]
-                # value is being stored as string until ; is found
-                # should probably operate values before storing them
-                # would have to make sure the types of operands are
-                # compatible
                 value += next.word + " "
 
             value.strip()
@@ -422,6 +492,10 @@ class Semantic:
                                 reason = "Types don't match, expected " + at + " and got"
                                 self.__errors__.append([symbol, reason, t])
                                 break
+                            else:
+                                element.value = value.strip()
+                                print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
+
                     else:
                         element.value = value.strip()
                         print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
