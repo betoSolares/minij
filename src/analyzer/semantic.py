@@ -396,8 +396,6 @@ class Semantic:
             self.__position__ += 1
             next = self.__input__[self.__position__]
 
-            import pdb; pdb.set_trace()
-
             while next.word != ";":
 
                 if next.category != "DoubleOperator" and next.category != "SingleOperator":
@@ -424,9 +422,6 @@ class Semantic:
 
                     elif operator == "%":
                         value = str(int(operands[0]) % int(operands[1]))
-
-                # else:
-
 
 
             value.strip()
