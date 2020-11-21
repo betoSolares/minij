@@ -200,6 +200,38 @@ class Semantic:
 
                         implements = implements[:len(implements) - 1]
 
+                # Validate extends and implements
+                extend_found = True
+                implement_found = True
+
+                if extends is not None:
+                    extend_found = False
+
+                    for element in self.__symbols__:
+                        if element.lexeme == extends and element.scope == "Global":
+                            extend_found = True
+                            break
+
+                    if not extend_found:
+                        reason = "Class not declared"
+                        self.__errors__.append([token, reason, extends])
+
+                if implements is not None:
+                    for implement in implements.split(","):
+                        implement_found = False
+
+                        for element in self.__symbols__:
+                            if element.lexeme == implement and element.scope == "Global":
+                                implement_found = True
+                                break
+
+                        if implement_found is False:
+                            reason = "Interface not declared"
+                            self.__errors__.append([token, reason, implement])
+
+                if extend_found is False or implement_found is False:
+                    return
+
         # Check for interface declaration
         elif previous.word == "interface":
             type = category = "interface"
