@@ -1,5 +1,7 @@
 class Symbol:
-    def __init__(self, lexeme, type, category, value, scope, extends, implements, params):
+    def __init__(
+        self, lexeme, type, category, value, scope, extends, implements, params
+    ):
         self.__lexeme__ = lexeme
         self.__type__ = type
         self.__category__ = category
