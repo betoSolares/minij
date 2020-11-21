@@ -262,19 +262,29 @@ class Semantic:
 
         # Check if accesing object
         elif next.word == ".":
-
             while True:
-                if next.word == "=":
+                if next.word == "=" or next.word == ";":
                     break
 
                 lexeme += next.word
                 self.__position__ += 1
                 next = self.__input__[self.__position__]
 
-            self.__position__ += 1
-            value = self.__input__[self.__position__].word # Get real value
-            type = lexeme
-            category = "object"
+            type = token.word
+
+            if next.word == ";":
+                value = None
+            else:
+                value = ""
+                while True:
+                    if next.word == ";":
+                        break
+
+                    self.__position__ += 1
+                    next = self.__input__[self.__position__]
+                    value += next.word
+
+            category = "access object"
 
             symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements, params)
             self.__symbols__.append(symbol)
@@ -283,19 +293,29 @@ class Semantic:
 
         # Check if accesing object
         elif previous.word == ".":
-
             while True:
-                if next.word == "=":
+                if next.word == "=" or next.word == ";":
                     break
 
                 lexeme += next.word
                 self.__position__ += 1
                 next = self.__input__[self.__position__]
 
-            self.__position__ += 1
-            value = self.__input__[self.__position__].word # Get real value
-            type = lexeme
-            category = "object"
+            type = before_previous.word
+
+            if next.word == ";":
+                value = None
+            else:
+                value = ""
+                while True:
+                    if next.word == ";":
+                        break
+
+                    self.__position__ += 1
+                    next = self.__input__[self.__position__]
+                    value += next.word
+
+            category = "access object"
 
         # Simple variable declaration
         else:
