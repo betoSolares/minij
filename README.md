@@ -37,6 +37,26 @@ tokens found by the lexer and analyzes them conforming to the rules of our gramm
 If you need more information check the [Analysis](https://github.com/betoSolares/minij/blob/master/docs/Analysis.pdf)
 or [Parsing Table](https://github.com/betoSolares/minij/blob/master/docs/ParsingTable.xlsx) files.
 
+### Semantic Analyzer
+
+The semantic analyzer checks for errors in that the lexer and parser couldn't catch. For that we have some atributes
+for the symbols that we found:
+
+* **Class declaration** is added to the symbol table only if the classes and interfaces that extends and implements
+    are declared and there isn't any other class with the same name. It has attributes like scope, category and type.
+* **Interface declaration** is added to the symbol table only if there isn't any other interface with the same name.
+    It has atributes like scope, category and type.
+* **Function declaration** is added to the symbol table only if there isn't any other function  with the same name.
+    It has atributes like scope, category, parameters and type.
+* **Variable declaration** is added to the symbol table only if there isn't any other variable  with the same name.
+    It has atributes like scope, category, value and type.
+* **Object declaration** is added to the symbol table only if there isn't any other variable  with the same name and
+    the type is a valid class. It has atributes like scope, category, value and type.
+* **Function call** is added to the symbol table only if the funtion is declared before the call and the parameters
+    of the call are the same as in the declaration. It has atributes like scope, category, parameters and type.
+* **Object Accessing** is added to the symbol table only if the object is from a valid class and in that class the
+    property exists. It has atributes like scope, category, value and type.
+
 ## Grammar Explanation
 
 The syntax of the language is very similar to the syntax of Java, which is why the tokens are
