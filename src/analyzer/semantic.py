@@ -245,7 +245,7 @@ class Semantic:
         elif previous.category == "Identifier":
             value_found = None
             for element in self.__symbols__:
-                if element.lexeme == previous.word:
+                if element.lexeme == previous.word and element.category == "class":
                     value_found = element
                     break
 
@@ -282,7 +282,7 @@ class Semantic:
             # Function declaration
             else:
                 type = previous.word
-                category = "function declaration"
+                category = "function"
                 self.__loking_func__ = True
                 self.__scope__.append(lexeme)
 
@@ -412,7 +412,19 @@ class Semantic:
 
         # Symbol already declared
         else:
-            reason = "Alredy declared"
+            value = None
+            for element in self.__symbols__:
+                if element.lexeme == symbol.word:
+                    value = element
+
+                    if len(scope.split(",")) == 1 and value.category == "class" or value.category == "interface":
+                        break
+
+            if value is not None:
+                reason = "Alredy declared " + value.category
+            else:
+                reason = "Alredy declared"
+
             self.__errors__.append([symbol, reason, symbol.word])
             skipped = 0
             next = symbol
