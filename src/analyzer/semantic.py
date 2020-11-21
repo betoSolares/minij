@@ -1,5 +1,6 @@
 from .symbol import Symbol
 from .token import Token
+import re
 import sys
 
 
@@ -277,7 +278,9 @@ class Semantic:
                 params.strip()
                 params = params[:len(params) - 2]
 
-                # Check params
+                # Check the paramater matchs
+                if not self.__check_parameters__(before_previous, token, params):
+                    return
 
             # Function declaration
             else:
@@ -557,6 +560,98 @@ class Semantic:
             self.__errors__.append([current, reason, current.word])
             return False
 
+    # Check if a method an parameters matchs
+    def __check_parameters__(self, before, current, params):
+        if before.category == "Identifier":
+            value = None
+            for element in self.__symbols__:
+                if element.lexeme == before.word:
+                    value = element
+                    break
+
+            if value is not None:
+                class_found = value.type
+
+                method_found = None
+                for element in self.__symbols__:
+                    if element.lexeme == current.word and element.scope == "Global," + class_found:
+                        method_found = element
+                        break
+
+                if method_found is None:
+                    new_symbol = None
+                    for element in self.__symbols__:
+                        if element.lexeme == class_found and element.scope == "Global":
+                            new_symbol = element
+                            break
+
+                    if new_symbol is not None:
+                        if new_symbol.implements is not None:
+                            for element in self.__symbols__:
+                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                    method_found = element
+                                    break
+
+                        if method_found is None:
+                            found = False
+                            for extended in new_symbol.extends.split(","):
+                                for element in self.__symbols__:
+                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                        found = True
+                                        method_found = element
+                                        break
+
+                                if found:
+                                    break
+
+            else:
+                reason = "Accesing to undeclared object"
+                self.__errors__.append([current, reason, current.word])
+                return False
+
+        else:
+            method_found = None
+            for element in self.__symbols__:
+                if element.lexeme == current.word and element.scope == ",".join(self.__scope__):
+                    method_found = element
+                    break
+
+        if method_found is not None:
+            actuals = method_found.params.strip().split(" , ")
+            to_check = params.strip().split(" , ")
+            errors = False
+
+            if len(actuals) == len(to_check):
+                for i, _ in enumerate(actuals):
+                    a = actuals[i]
+                    p = to_check[i]
+
+                    # Get the category
+                    t = self.__get_category__(p)
+
+                    if t is None:
+                        for element in self.__symbols__:
+                            if element.lexeme == p:
+                                t = element.type
+
+                    if t is not None:
+                        at = a.split(" ")[0].strip()
+                        if at != t:
+                            reason = "Types don't match, expected " + at + " and got"
+                            self.__errors__.append([current, reason, t])
+                            errors = True
+
+                return not errors
+
+            else:
+                reason = "Too many arguments in call of funtion"
+                self.__errors__.append([current, reason, current.word])
+                return False
+        else:
+            reason = "Calling to undeclared method"
+            self.__errors__.append([current, reason, current.word])
+            return False
+
     # Check if a property is defined in a class
     def __check_property__(self, current):
         before_previous = self.__input__[self.__position__ - 3]
@@ -679,5 +774,29 @@ class Semantic:
                 return type_found.type
             else:
                 return None
+        else:
+            return None
+
+    def __get_category__(self, word):
+        # Recognize int base 10 number
+        if re.search(r"^[0-9]+$", word):
+            return "int"
+
+        # Recognize int base 16 number
+        elif re.search(r"^0[x|X][0-9a-fA-F]+$", word):
+            return "int"
+
+        # Recognize double number
+        elif re.search(r"^[0-9]+\.?[0-9]*([e|E][+|-]?[0-9]+)?$", word):
+            return "double"
+
+        # Recognize string
+        elif re.search(r"^\".*\"$", word):
+           return "string"
+
+        # Recognize boolean
+        elif word == "true" or word == "false":
+            return "boolean"
+
         else:
             return None
