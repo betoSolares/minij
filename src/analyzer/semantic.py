@@ -1,7 +1,7 @@
+import re
+
 from .symbol import Symbol
 from .token import Token
-import re
-import sys
 
 
 class Semantic:
@@ -45,7 +45,10 @@ class Semantic:
                     continue
 
                 # Check if symbol exists
-                if self.__get_symbol__(current.word, ",".join(self.__scope__)) is None:
+                if (
+                    self.__get_symbol__(current.word, ",".join(self.__scope__))
+                    is None
+                ):
 
                     # Check for assignement
                     if lookahead.word == "=":
@@ -57,7 +60,9 @@ class Semantic:
                             self.__update_symbol__(current, scp)
                         else:
                             reason = "Assigning to undeclared variable"
-                            self.__errors__.append([current, reason, current.word])
+                            self.__errors__.append(
+                                [current, reason, current.word]
+                            )
                             while lookahead.word != ";":
                                 self.__position__ += 1
                                 lookahead = self.__input__[self.__position__]
@@ -81,7 +86,9 @@ class Semantic:
                                     lookahead = self.__input__[self.__position__]
                         else:
                             reason = "Assigning to undeclared object"
-                            self.__errors__.append([current, reason, current.word])
+                            self.__errors__.append(
+                                [current, reason, current.word]
+                            )
                             while lookahead.word != ";":
                                 self.__position__ += 1
                                 lookahead = self.__input__[self.__position__]
@@ -137,7 +144,11 @@ class Semantic:
                         self.__scope__.pop()
 
                 # Skip Statetements block (provitional)
-                elif current.word == "if" or current.word == "while" or current.word == "for":
+                elif (
+                    current.word == "if"
+                    or current.word == "while"
+                    or current.word == "for"
+                ):
                     lookahead = current
                     while lookahead.word != ")":
                         lookahead = self.__input__[self.__position__]
@@ -204,7 +215,7 @@ class Semantic:
                             next = self.__input__[self.__position__]
                             implements += next.word
 
-                        implements = implements[:len(implements) - 1]
+                        implements = implements[: len(implements) - 1]
 
                 # Validate extends and implements
                 extend_found = True
@@ -214,7 +225,11 @@ class Semantic:
                     extend_found = False
 
                     for element in self.__symbols__:
-                        if element.lexeme == extends and element.scope == "Global" and element.type == "class":
+                        if (
+                            element.lexeme == extends
+                            and element.scope == "Global"
+                            and element.type == "class"
+                        ):
                             extend_found = True
                             break
 
@@ -227,7 +242,11 @@ class Semantic:
                         implement_found = False
 
                         for element in self.__symbols__:
-                            if element.lexeme == implement and element.scope == "Global" and element.type == "interface":
+                            if (
+                                element.lexeme == implement
+                                and element.scope == "Global"
+                                and element.type == "interface"
+                            ):
                                 implement_found = True
                                 break
 
@@ -246,7 +265,10 @@ class Semantic:
         elif previous.category == "Identifier":
             value_found = None
             for element in self.__symbols__:
-                if element.lexeme == previous.word and element.category == "class":
+                if (
+                    element.lexeme == previous.word
+                    and element.category == "class"
+                ):
                     value_found = element
                     break
 
@@ -257,7 +279,6 @@ class Semantic:
                 reason = "Creating object of undefined type"
                 self.__errors__.append([previous, reason, previous.word])
                 return
-
 
         # Check if funtion declaration or function call
         elif next.word == "(":
@@ -276,7 +297,7 @@ class Semantic:
                     params += next.word + " "
 
                 params.strip()
-                params = params[:len(params) - 2]
+                params = params[: len(params) - 2]
 
                 # Check the paramater matchs
                 if not self.__check_parameters__(before_previous, token, params):
@@ -299,7 +320,7 @@ class Semantic:
                     params += next.word + " "
 
                 params.strip()
-                params = params[:len(params) - 2]
+                params = params[: len(params) - 2]
 
         # Check if accesing object
         elif next.word == ".":
@@ -327,11 +348,57 @@ class Semantic:
 
             category = "access object"
             value.strip()
-            value = value[:len(value) - 2]
+            value = value[: len(value) - 2]
 
-            symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements, params)
+            if value is not None and len(value.strip().split(" ")) == 1:
+
+                val = None
+                for element in self.__symbols__:
+                    if element.lexeme == lexeme:
+                        val = element
+                        break
+
+                if val is not None:
+                    at = val.type
+                    t = self.__get_category__(value.strip())
+
+                    if t is None:
+                        for element in self.__symbols__:
+                            if element.lexeme == value.strip():
+                                t = element.type
+                                value = element.value
+                                reference = element.lexeme
+
+                    if value is None:
+                        reason = "Assigning to undefined variable"
+                        self.__errors__.append([token, reason, reference])
+                        return
+
+                    if t is not None:
+                        at = element.type
+                        if at != t:
+                            reason = (
+                                "Types don't match, expected " + at + " and got"
+                            )
+                            self.__errors__.append([token, reason, t])
+                            return
+
+                else:
+                    reason = "Accesing to undeclared property"
+                    self.__errors__.append([token, reason, token.word])
+                    return
+
+            symbol = Symbol(
+                lexeme,
+                type,
+                category,
+                value.word,
+                scope,
+                extends,
+                implements,
+                params,
+            )
             self.__symbols__.append(symbol)
-            print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
             return
 
         # Check if accesing object
@@ -360,16 +427,55 @@ class Semantic:
 
             category = "access object"
             value.strip()
-            value = value[:len(value) - 2]
+            value = value[: len(value) - 2]
+
+            if value is not None and len(value.strip().split(" ")) == 1:
+
+                val = None
+                for element in self.__symbols__:
+                    if element.lexeme == lexeme:
+                        val = element
+                        break
+
+                if val is not None:
+                    at = val.type
+                    t = self.__get_category__(value.strip())
+
+                    if t is None:
+                        for element in self.__symbols__:
+                            if element.lexeme == value.strip():
+                                t = element.type
+                                value = element.value
+                                reference = element.lexeme
+
+                    if value is None:
+                        reason = "Assigning to undefined variable"
+                        self.__errors__.append([token, reason, reference])
+                        return
+
+                    if t is not None:
+                        at = element.type
+                        if at != t:
+                            reason = (
+                                "Types don't match, expected " + at + " and got"
+                            )
+                            self.__errors__.append([token, reason, t])
+                            return
+
+                else:
+                    reason = "Accesing to undeclared property"
+                    self.__errors__.append([token, reason, token.word])
+                    return
 
         # Simple variable declaration
         else:
             type = previous.word
             category = "variable"
 
-        symbol = Symbol(lexeme, type, category, value, scope, extends, implements, params)
+        symbol = Symbol(
+            lexeme, type, category, value, scope, extends, implements, params
+        )
         self.__symbols__.append(symbol)
-        print("Append", symbol.lexeme, symbol.type, symbol.category, symbol.value, symbol.scope, symbol.extends, symbol.implements, symbol.params)
 
         return
 
@@ -398,7 +504,10 @@ class Semantic:
 
             while next.word != ";":
 
-                if next.category != "DoubleOperator" and next.category != "SingleOperator":
+                if (
+                    next.category != "DoubleOperator"
+                    and next.category != "SingleOperator"
+                ):
                     operands.append(next.word)
 
                 else:
@@ -423,10 +532,9 @@ class Semantic:
                     elif operator == "%":
                         value = str(int(operands[0]) % int(operands[1]))
 
-
             value.strip()
             if len(value) != 1:
-                value = value[:len(value) - 2]
+                value = value[: len(value) - 2]
 
             for element in self.__symbols__:
                 if element.lexeme == symbol.word and element.scope == scope:
@@ -442,17 +550,27 @@ class Semantic:
                         if t is not None:
                             at = element.type
                             if at != t:
-                                reason = "Types don't match, expected " + at + " and got"
+                                reason = (
+                                    "Types don't match, expected "
+                                    + at
+                                    + " and got"
+                                )
                                 self.__errors__.append([symbol, reason, t])
                                 break
 
                             else:
                                 element.value = value.strip()
-                                print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
+                                print(
+                                    "Update",
+                                    element.lexeme,
+                                    element.type,
+                                    element.category,
+                                    element.value,
+                                    element.scope,
+                                )
                                 break
                     else:
                         element.value = value.strip()
-                        print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
 
                     break
 
@@ -465,7 +583,11 @@ class Semantic:
                 if element.lexeme == symbol.word:
                     value = element
 
-                    if len(scope.split(",")) == 1 and value.category == "class" or value.category == "interface":
+                    if (
+                        len(scope.split(",")) == 1
+                        and value.category == "class"
+                        or value.category == "interface"
+                    ):
                         break
 
             if value is not None:
@@ -523,21 +645,31 @@ class Semantic:
 
                 method_found = None
                 for element in self.__symbols__:
-                    if element.lexeme == current.word and element.scope == new_scope:
+                    if (
+                        element.lexeme == current.word
+                        and element.scope == new_scope
+                    ):
                         method_found = element
                         break
 
                 if method_found is None:
                     new_symbol = None
                     for element in self.__symbols__:
-                        if element.lexeme == class_found and element.scope == "Global":
+                        if (
+                            element.lexeme == before_previous.word
+                            and element.scope == "Global"
+                        ):
                             new_symbol = element
                             break
 
                     if new_symbol is not None:
                         if new_symbol.implements is not None:
                             for element in self.__symbols__:
-                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                if (
+                                    element.lexeme == current.word
+                                    and element.scope
+                                    == "Global," + new_symbol.implements
+                                ):
                                     method_found = element
                                     break
 
@@ -545,7 +677,10 @@ class Semantic:
                             found = False
                             for extended in new_symbol.extends.split(","):
                                 for element in self.__symbols__:
-                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                    if (
+                                        element.lexeme == current.word
+                                        and element.scope == "Global," + extended
+                                    ):
                                         found = True
                                         method_found = element
                                         break
@@ -563,21 +698,31 @@ class Semantic:
             else:
                 property_found = None
                 for element in self.__symbols__:
-                    if element.lexeme == current.word and element.scope == new_scope:
+                    if (
+                        element.lexeme == current.word
+                        and element.scope == new_scope
+                    ):
                         property_found = element
                         break
 
                 if property_found is None:
                     new_symbol = None
                     for element in self.__symbols__:
-                        if element.lexeme == class_found and element.scope == "Global":
+                        if (
+                            element.lexeme == before_previous.word
+                            and element.scope == "Global"
+                        ):
                             new_symbol = element
                             break
 
                     if new_symbol is not None:
                         if new_symbol.implements is not None:
                             for element in self.__symbols__:
-                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                if (
+                                    element.lexeme == current.word
+                                    and element.scope
+                                    == "Global," + new_symbol.implements
+                                ):
                                     property_found = element
                                     break
 
@@ -585,7 +730,10 @@ class Semantic:
                             found = False
                             for extended in new_symbol.extends.split(","):
                                 for element in self.__symbols__:
-                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                    if (
+                                        element.lexeme == current.word
+                                        and element.scope == "Global," + extended
+                                    ):
                                         found = True
                                         property_found = element
                                         break
@@ -619,21 +767,31 @@ class Semantic:
 
                 method_found = None
                 for element in self.__symbols__:
-                    if element.lexeme == current.word and element.scope == "Global," + class_found:
+                    if (
+                        element.lexeme == current.word
+                        and element.scope == "Global," + class_found
+                    ):
                         method_found = element
                         break
 
                 if method_found is None:
                     new_symbol = None
                     for element in self.__symbols__:
-                        if element.lexeme == class_found and element.scope == "Global":
+                        if (
+                            element.lexeme == class_found
+                            and element.scope == "Global"
+                        ):
                             new_symbol = element
                             break
 
                     if new_symbol is not None:
                         if new_symbol.implements is not None:
                             for element in self.__symbols__:
-                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                if (
+                                    element.lexeme == current.word
+                                    and element.scope
+                                    == "Global," + new_symbol.implements
+                                ):
                                     method_found = element
                                     break
 
@@ -641,7 +799,10 @@ class Semantic:
                             found = False
                             for extended in new_symbol.extends.split(","):
                                 for element in self.__symbols__:
-                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                    if (
+                                        element.lexeme == current.word
+                                        and element.scope == "Global," + extended
+                                    ):
                                         found = True
                                         method_found = element
                                         break
@@ -657,7 +818,9 @@ class Semantic:
         else:
             method_found = None
             for element in self.__symbols__:
-                if element.lexeme == current.word and element.scope == ",".join(self.__scope__):
+                if element.lexeme == current.word and element.scope == ",".join(
+                    self.__scope__
+                ):
                     method_found = element
                     break
 
@@ -682,7 +845,13 @@ class Semantic:
                     if t is not None:
                         at = a.split(" ")[0].strip()
                         if at != t:
-                            reason = "Types don't match, expected " + at + " and got"
+                            reason = (
+                                "Types don't match in argument number "
+                                + str(i + 1)
+                                + ", expected "
+                                + at
+                                + " and got"
+                            )
                             self.__errors__.append([current, reason, t])
                             errors = True
 
@@ -690,11 +859,19 @@ class Semantic:
 
             else:
                 if len(to_check) > len(actuals):
-                    reason = "Too many parameters, expected " + str(len(actuals)) + " and got"
+                    reason = (
+                        "Too many parameters, expected "
+                        + str(len(actuals))
+                        + " and got"
+                    )
                     self.__errors__.append([current, reason, str(len(to_check))])
                     return False
                 else:
-                    reason = "Missing parameters, expected " + str(len(actuals)) + " and got"
+                    reason = (
+                        "Missing parameters, expected "
+                        + str(len(actuals))
+                        + " and got"
+                    )
                     self.__errors__.append([current, reason, str(len(to_check))])
                     return False
 
@@ -721,21 +898,31 @@ class Semantic:
 
                 method_found = None
                 for element in self.__symbols__:
-                    if element.lexeme == current.word and element.scope == "Global," + class_found:
+                    if (
+                        element.lexeme == current.word
+                        and element.scope == "Global," + class_found
+                    ):
                         method_found = element
                         break
 
                 if method_found is None:
                     new_symbol = None
                     for element in self.__symbols__:
-                        if element.lexeme == class_found and element.scope == "Global":
+                        if (
+                            element.lexeme == class_found
+                            and element.scope == "Global"
+                        ):
                             new_symbol = element
                             break
 
                     if new_symbol is not None:
                         if new_symbol.implements is not None:
                             for element in self.__symbols__:
-                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                if (
+                                    element.lexeme == current.word
+                                    and element.scope
+                                    == "Global," + new_symbol.implements
+                                ):
                                     method_found = element
                                     break
 
@@ -743,7 +930,10 @@ class Semantic:
                             found = False
                             for extended in new_symbol.extends.split(","):
                                 for element in self.__symbols__:
-                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                    if (
+                                        element.lexeme == current.word
+                                        and element.scope == "Global," + extended
+                                    ):
                                         found = True
                                         method_found = element
                                         break
@@ -761,21 +951,31 @@ class Semantic:
             else:
                 property_found = None
                 for element in self.__symbols__:
-                    if element.lexeme == current.word and element.scope == "Global," + class_found:
+                    if (
+                        element.lexeme == current.word
+                        and element.scope == "Global," + class_found
+                    ):
                         property_found = element
                         break
 
                 if property_found is None:
                     new_symbol = None
                     for element in self.__symbols__:
-                        if element.lexeme == class_found and element.scope == "Global":
+                        if (
+                            element.lexeme == class_found
+                            and element.scope == "Global"
+                        ):
                             new_symbol = element
                             break
 
                     if new_symbol is not None:
                         if new_symbol.implements is not None:
                             for element in self.__symbols__:
-                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                if (
+                                    element.lexeme == current.word
+                                    and element.scope
+                                    == "Global," + new_symbol.implements
+                                ):
                                     property_found = element
                                     break
 
@@ -783,7 +983,10 @@ class Semantic:
                             found = False
                             for extended in new_symbol.extends.split(","):
                                 for element in self.__symbols__:
-                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                    if (
+                                        element.lexeme == current.word
+                                        and element.scope == "Global," + extended
+                                    ):
                                         found = True
                                         property_found = element
                                         break
@@ -817,7 +1020,9 @@ class Semantic:
 
             type_found = None
             for element in self.__symbols__:
-                if element.lexeme == method_found and element.scope == ",".join(scope_found):
+                if element.lexeme == method_found and element.scope == ",".join(
+                    scope_found
+                ):
                     type_found = element
                     break
 
@@ -843,7 +1048,7 @@ class Semantic:
 
         # Recognize string
         elif re.search(r"^\".*\"$", word):
-           return "string"
+            return "string"
 
         # Recognize boolean
         elif word == "true" or word == "false":
