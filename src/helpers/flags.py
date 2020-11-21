@@ -61,10 +61,10 @@ def parse_flags(args_list):
         output = filename
         count = 0
 
-        while os.path.isfile(output + ".out"):
+        while os.path.isfile(output + ".table"):
             count += 1
             output = filename + "(" + str(count) + ")"
 
-        args["output"] = output + ".out"
+        args["output"] = output + ".table"
 
     return args

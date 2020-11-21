@@ -21,6 +21,11 @@ class Semantic:
     def errors(self):
         return self.__errors__
 
+    # Get the table symbols
+    @property
+    def symbols(self):
+        return self.__symbols__
+
     # Try analyze
     def analyze(self, tokens):
         self.__input__ = tokens
@@ -315,9 +320,11 @@ class Semantic:
 
                     self.__position__ += 1
                     next = self.__input__[self.__position__]
-                    value += next.word
+                    value += next.word + " "
 
             category = "access object"
+            value.strip()
+            value = value[:len(value) - 2]
 
             symbol = Symbol(lexeme, type, category, value.word, scope, extends, implements, params)
             self.__symbols__.append(symbol)
@@ -346,9 +353,11 @@ class Semantic:
 
                     self.__position__ += 1
                     next = self.__input__[self.__position__]
-                    value += next.word
+                    value += next.word + " "
 
             category = "access object"
+            value.strip()
+            value = value[:len(value) - 2]
 
         # Simple variable declaration
         else:
@@ -392,7 +401,7 @@ class Semantic:
                 value += next.word + " "
 
             value.strip()
-            value = value[:len(value) - 1]
+            value = value[:len(value) - 2]
             for element in self.__symbols__:
                 if element.lexeme == symbol.word and element.scope == scope:
                     element.value = value.strip()

@@ -14,13 +14,20 @@ def main(args):
             print(warning)
 
         print("The file is fine, no error was found")
+        print("\nCheck the", files["output"], "file for more information.")
+        helpers.write(files["output"], analyzer.symbols)
         sys.exit(0)
+
     else:
         for warning in analyzer.warnings:
             print(warning)
 
         for error in analyzer.errors:
             print(error)
+
+        if analyzer.failedAt == "Semantic":
+            print("\nCheck the", files["output"], "file for more information.")
+            helpers.write(files["output"], analyzer.symbols)
 
         sys.exit(1)
 

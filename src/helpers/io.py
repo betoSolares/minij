@@ -35,32 +35,30 @@ def write(output, items):
 
 # Get the text to put in the file
 def get_text(item):
-    if item.category == "Error":
-        return (
-            "*** Error on line "
-            + str(item.line)
-            + " *** "
-            + item.reason
-            + " "
-            + item.word
-        )
-    else:
-        if item.finish is None:
-            cols = " column " + str(item.start)
-        else:
-            cols = " columns " + str(item.start) + " to " + str(item.finish)
 
-        if "Constant" in item.category:
-            vals = " (value = " + item.word + ")"
-        else:
-            vals = ""
+    created = item.lexeme + " -> "
 
-        return (
-            item.word
-            + " on line "
-            + str(item.line)
-            + cols
-            + " is T_"
-            + item.category
-            + vals
-        )
+    if item.type is not None:
+        created += "[type = " + item.type + "] "
+
+    if item.category is not None:
+        created += "[category = " + item.category + "] "
+
+    if item.value is not None:
+        created += "[value = " + item.value + "] "
+    elif item.category == "variable" or item.category == "static":
+        created += "[value = undefined] "
+
+    if item.scope is not None:
+        created += "[scope = " + item.scope + "] "
+
+    if item.extends is not None:
+        created += "[extends = " + item.extends + "] "
+
+    if item.implements is not None:
+        created += "[implements = " + item.implements + "] "
+
+    if item.params is not None:
+        created += "[params = " + item.params + "] "
+
+    return created.strip()
