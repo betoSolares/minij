@@ -206,8 +206,20 @@ class Semantic:
 
         # Check for object declaration
         elif previous.category == "Identifier":
-            type = previous.word
-            category = "object"
+            value_found = None
+            for element in self.__symbols__:
+                if element.lexeme == previous.word:
+                    value_found = element
+                    break
+
+            if value_found is not None:
+                type = previous.word
+                category = "object"
+            else:
+                reason = "Creating object of undefined type"
+                self.__errors__.append([previous, reason, previous.word])
+                return
+
 
         # Check if funtion declaration or function call
         elif next.word == "(":
