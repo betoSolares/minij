@@ -425,6 +425,9 @@ class Semantic:
                     elif operator == "%":
                         value = str(int(operands[0]) % int(operands[1]))
 
+                # else:
+
+
 
             value.strip()
             if len(value) != 1:
