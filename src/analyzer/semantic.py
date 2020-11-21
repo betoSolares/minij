@@ -236,7 +236,7 @@ class Semantic:
                 while next.word != ")":
                     helper += 1
                     next = self.__input__[helper]
-                    params += next.word
+                    params += next.word + " "
 
                 params = params[:len(params) - 1]
 
@@ -256,7 +256,7 @@ class Semantic:
                 while next.word != ")":
                     helper += 1
                     next = self.__input__[helper]
-                    params += next.word
+                    params += next.word + " "
 
                 params = params[:len(params) - 1]
 
