@@ -644,9 +644,15 @@ class Semantic:
                 return not errors
 
             else:
-                reason = "Too many arguments in call of funtion"
-                self.__errors__.append([current, reason, current.word])
-                return False
+                if len(to_check) > len(actuals):
+                    reason = "Too many parameters, expected " + str(len(actuals)) + " and got"
+                    self.__errors__.append([current, reason, str(len(to_check))])
+                    return False
+                else:
+                    reason = "Missing parameters, expected " + str(len(actuals)) + " and got"
+                    self.__errors__.append([current, reason, str(len(to_check))])
+                    return False
+
         else:
             reason = "Calling to undeclared method"
             self.__errors__.append([current, reason, current.word])
