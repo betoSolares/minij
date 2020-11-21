@@ -367,9 +367,22 @@ class Semantic:
 
             return True
 
+        # Symbol already declared
         else:
-            # Class, variable, function or interface already declared
-            # add error
+            reason = "Alredy declared"
+            self.__errors__.append([symbol, reason, symbol.word])
+            skipped = 0
+            next = symbol
+
+            while not (next.word == "}" and skipped == 0):
+                if next.word == "{":
+                    skipped += 1
+                elif next.word == "}":
+                    skipped -= 1 if skipped != 0 else 0
+
+                self.__position__ += 1
+                next = self.__input__[self.__position__]
+
             return False
 
     # Check if symbol was declared in any parent scope
