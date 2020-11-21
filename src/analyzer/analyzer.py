@@ -11,15 +11,32 @@ class Analyzer:
         self.__semantic__ = Semantic()
         self.__text__ = text
         self.__warnings__ = []
+        self.__failed__ = None
 
     # Get a list with all the errors
     @property
     def errors(self):
         return self.__errors__
 
+    # Get a list with all the warningss
     @property
     def warnings(self):
         return self.__warnings__
+
+    # Get a list with the tokens
+    @property
+    def tokens(self):
+        return self.__lexer__.tokens
+
+    # Get a the table symbols
+    @property
+    def symbols(self):
+        return self.__semantic__.symbols
+
+    # Get the part of the analyzer that fails
+    @property
+    def failedAt(self):
+        return self.__failed__
 
     # Try to analyze the text
     def try_analyze(self):
@@ -31,14 +48,17 @@ class Analyzer:
                 else:
                     self.__lexer__warnings__()
                     self.__semantic__errors__()
+                    self.__failed__ = "Semantic"
                     return False
             else:
                 self.__lexer__warnings__()
                 self.__parser__errors__()
+                self.__failed__ == "Parser"
                 return False
         else:
             self.__lexer__warnings__()
             self.__lexer__errors__()
+            self.__failed__ == "Lexer"
             return False
 
     # Convert the lexer errors
