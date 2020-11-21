@@ -388,23 +388,48 @@ class Semantic:
     def __update_symbol__(self, symbol, scope):
         next = self.__input__[self.__position__]
         value = ""
+        operands = []
+        operator = ""
 
         if next.word == "=":
 
-            while True:
-                if next.word == ";":
-                    break
+            self.__position__ += 1
+            next = self.__input__[self.__position__]
 
+            import pdb; pdb.set_trace()
+
+            while next.word != ";":
+
+                if next.category != "DoubleOperator" and next.category != "SingleOperator":
+                    operands.append(next.word)
+
+                else:
+                    operator = next.word
+
+                value += next.word + " "
                 self.__position__ += 1
                 next = self.__input__[self.__position__]
+
                 # value is being stored as string until ; is found
                 # should probably operate values before storing them
                 # would have to make sure the types of operands are
                 # compatible
-                value += next.word + " "
+
+            if len(operands) == 2 and operator != "":
+
+                if operands[0].isdigit() and operands[1].isdigit():
+
+                    if operator == "-":
+                        value = str(int(operands[0]) - int(operands[1]))
+
+                    elif operator == "%":
+                        value = str(int(operands[0]) % int(operands[1]))
+
 
             value.strip()
-            value = value[:len(value) - 2]
+            if len(value) != 1:
+                value = value[:len(value) - 2]
+
             for element in self.__symbols__:
                 if element.lexeme == symbol.word and element.scope == scope:
                     if len(value.strip().split(" ")) == 1:
@@ -421,6 +446,11 @@ class Semantic:
                             if at != t:
                                 reason = "Types don't match, expected " + at + " and got"
                                 self.__errors__.append([symbol, reason, t])
+                                break
+
+                            else:
+                                element.value = value.strip()
+                                print("Update", element.lexeme, element.type, element.category, element.value, element.scope)
                                 break
                     else:
                         element.value = value.strip()
