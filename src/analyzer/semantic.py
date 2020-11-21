@@ -231,14 +231,14 @@ class Semantic:
 
                 # Get params
                 params = ""
-                helper = self.__position__
 
                 while next.word != ")":
-                    helper += 1
-                    next = self.__input__[helper]
+                    self.__position__ += 1
+                    next = self.__input__[self.__position__]
                     params += next.word + " "
 
-                params = params[:len(params) - 1]
+                params.strip()
+                params = params[:len(params) - 2]
 
                 # Check params
 
@@ -258,7 +258,8 @@ class Semantic:
                     next = self.__input__[helper]
                     params += next.word + " "
 
-                params = params[:len(params) - 1]
+                params.strip()
+                params = params[:len(params) - 2]
 
         # Check if accesing object
         elif next.word == ".":
@@ -358,6 +359,7 @@ class Semantic:
                 # compatible
                 value += next.word + " "
 
+            value.strip()
             value = value[:len(value) - 1]
             for element in self.__symbols__:
                 if element.lexeme == symbol.word and element.scope == scope:
@@ -424,6 +426,32 @@ class Semantic:
                         method_found = element
                         break
 
+                if method_found is None:
+                    new_symbol = None
+                    for element in self.__symbols__:
+                        if element.lexeme == class_found and element.scope == "Global":
+                            new_symbol = element
+                            break
+
+                    if new_symbol is not None:
+                        if new_symbol.implements is not None:
+                            for element in self.__symbols__:
+                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                    method_found = element
+                                    break
+
+                        if method_found is None:
+                            found = False
+                            for extended in new_symbol.extends.split(","):
+                                for element in self.__symbols__:
+                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                        found = True
+                                        method_found = element
+                                        break
+
+                                if found:
+                                    break
+
                 if method_found is not None:
                     return True
                 else:
@@ -438,6 +466,32 @@ class Semantic:
                         property_found = element
                         break
 
+                if property_found is None:
+                    new_symbol = None
+                    for element in self.__symbols__:
+                        if element.lexeme == class_found and element.scope == "Global":
+                            new_symbol = element
+                            break
+
+                    if new_symbol is not None:
+                        if new_symbol.implements is not None:
+                            for element in self.__symbols__:
+                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                    property_found = element
+                                    break
+
+                        if property_found is None:
+                            found = False
+                            for extended in new_symbol.extends.split(","):
+                                for element in self.__symbols__:
+                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                        found = True
+                                        property_found = element
+                                        break
+
+                                if found:
+                                    break
+
                 if property_found is not None:
                     return True
                 else:
@@ -449,7 +503,6 @@ class Semantic:
             reason = "Accesing to undeclared object"
             self.__errors__.append([current, reason, current.word])
             return False
-
 
     # Check if a property is defined in a class
     def __check_property__(self, current):
@@ -473,6 +526,32 @@ class Semantic:
                         method_found = element
                         break
 
+                if method_found is None:
+                    new_symbol = None
+                    for element in self.__symbols__:
+                        if element.lexeme == class_found and element.scope == "Global":
+                            new_symbol = element
+                            break
+
+                    if new_symbol is not None:
+                        if new_symbol.implements is not None:
+                            for element in self.__symbols__:
+                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                    method_found = element
+                                    break
+
+                        if method_found is None:
+                            found = False
+                            for extended in new_symbol.extends.split(","):
+                                for element in self.__symbols__:
+                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                        found = True
+                                        method_found = element
+                                        break
+
+                                if found:
+                                    break
+
                 if method_found is not None:
                     return True
                 else:
@@ -486,6 +565,32 @@ class Semantic:
                     if element.lexeme == current.word and element.scope == "Global," + class_found:
                         property_found = element
                         break
+
+                if property_found is None:
+                    new_symbol = None
+                    for element in self.__symbols__:
+                        if element.lexeme == class_found and element.scope == "Global":
+                            new_symbol = element
+                            break
+
+                    if new_symbol is not None:
+                        if new_symbol.implements is not None:
+                            for element in self.__symbols__:
+                                if element.lexeme == current.word and element.scope == "Global," + new_symbol.implements:
+                                    property_found = element
+                                    break
+
+                        if property_found is None:
+                            found = False
+                            for extended in new_symbol.extends.split(","):
+                                for element in self.__symbols__:
+                                    if element.lexeme == current.word and element.scope == "Global," + extended:
+                                        found = True
+                                        property_found = element
+                                        break
+
+                                if found:
+                                    break
 
                 if property_found is not None:
                     return True
