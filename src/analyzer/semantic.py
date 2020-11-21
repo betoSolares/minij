@@ -208,12 +208,12 @@ class Semantic:
                     extend_found = False
 
                     for element in self.__symbols__:
-                        if element.lexeme == extends and element.scope == "Global":
+                        if element.lexeme == extends and element.scope == "Global" and element.type == "class":
                             extend_found = True
                             break
 
                     if not extend_found:
-                        reason = "Class not declared"
+                        reason = "Can't extend, undeclared class"
                         self.__errors__.append([token, reason, extends])
 
                 if implements is not None:
@@ -221,12 +221,12 @@ class Semantic:
                         implement_found = False
 
                         for element in self.__symbols__:
-                            if element.lexeme == implement and element.scope == "Global":
+                            if element.lexeme == implement and element.scope == "Global" and element.type == "interface":
                                 implement_found = True
                                 break
 
                         if implement_found is False:
-                            reason = "Interface not declared"
+                            reason = "Can't implement, undeclared interface"
                             self.__errors__.append([token, reason, implement])
 
                 if extend_found is False or implement_found is False:
